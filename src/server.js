@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const path = require('path');
 
 require('dotenv').config();
 
@@ -28,10 +27,6 @@ app.use('/api/v1', require('./routes/race.routes'))
 app.use('/api/v1', require('./routes/class.routes'))
 app.use('/api/v1', require('./routes/location.routes'))
 app.use('/api/v1', require('./routes/npc.routes'))
-
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../client", "public", "index.html"));
-});
 
 app.listen(port, () => {
     console.log('server running on port ' + port);

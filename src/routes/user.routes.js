@@ -6,6 +6,13 @@ const bcrypt = require('bcrypt');
 
 let User = require('../models/user');
 
+router.get('/', async (req, res) => {
+    res.json({
+        status: 500,
+        message: "Internal server error"
+    )
+})
+
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
