@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
     res.json({
         status: 500,
         message: "Internal server error"
-    )
+    })
 })
 
 router.post('/login', async (req, res) => {
