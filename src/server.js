@@ -9,7 +9,6 @@ const port = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "client", "public")))
 
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/lierno';
 mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true });
