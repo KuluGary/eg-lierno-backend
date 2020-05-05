@@ -18,7 +18,7 @@ connection.once('open', () => {
     console.log("DB connected");
 })
 
-app.use('/api/v1', require('./routes/user.routes'))
+app.use('/api/v1/auth', require('./routes/user.routes'))
 app.use('/api/v1', require('./routes/character.routes'))
 app.use('/api/v1', require('./routes/item.routes'))
 app.use('/api/v1', require('./routes/monster.routes'))
@@ -26,6 +26,8 @@ app.use('/api/v1', require('./routes/race.routes'))
 app.use('/api/v1', require('./routes/class.routes'))
 app.use('/api/v1', require('./routes/location.routes'))
 app.use('/api/v1', require('./routes/npc.routes'))
+app.use('/api/v1', require('./routes/campaign.routes'))
+app.use('/api/v1', require('./routes/spell.routes'))
 
 app.listen(port, () => {
     console.log('server running on port ' + port);

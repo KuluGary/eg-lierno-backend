@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const secret = require('../configs/config');
 
 let Npc = require('../models/npc');
+let User = require('../models/user');
+let Campaign = require('../models/campaign');
 
 router.get('/npc', async (req, res) => {
     try {
@@ -11,12 +13,15 @@ router.get('/npc', async (req, res) => {
         const decoded = jwt.verify(token, secret.key);
 
         if (decoded) {
-            const npcs = await Npc.find({});
+            let campaigns = await User.distinct("campaigns", { _id: decoded.userId })
+            let campaignsDm = (await Campaign.distinct("_id", { dm: decoded.userId }))
+                .map(campaign => campaign.toString());
+            let npcs = await Npc.find({ "flavor.campaign": { $elemMatch: { $or: [{ campaignId: { $in: campaigns }, unlocked: true }, { campaignId: { $in: campaignsDm } },] } } })
 
             res.json({
                 status: 200,
                 message: "ok",
-                payload: npcs
+                payload: Array.from(new Set(npcs.map(a => a.id))).map(id => npcs.find(a => a.id === id))
             })
         } else {
             res.json({
@@ -50,8 +55,8 @@ router.get('/npc/:id', async (req, res) => {
                 message: "No JWT"
             })
         }
-        
-    } catch(e) {
+
+    } catch (e) {
         res.json({
             status: 500,
             message: "Internal server error"

@@ -6,13 +6,6 @@ const bcrypt = require('bcrypt');
 
 let User = require('../models/user');
 
-router.get('/', async (req, res) => {
-    res.json({
-        status: 500,
-        message: "Internal server error"
-    })
-})
-
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -40,7 +33,7 @@ router.post('/login', async (req, res) => {
                         }
                     })
                 } else {
-                    res.json({ 
+                    res.json({
                         status: 400,
                         message: "Wrong credentials"
                     })
@@ -98,7 +91,51 @@ router.get('/me', async (req, res) => {
             payload: user[0]
         })
     } catch (e) { }
+})
 
+router.post('/me/:id', async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(" ")[1];
+        const decoded = jwt.verify(token, secret.key);
+
+        if (decoded) {
+            const { profile } = req.body;
+
+            if (!profile) {
+                res.send({
+                    code: 500,
+                    message: "No updated profile sent"
+                })
+            }
+
+            User.findById(req.params.id, (err, user) => {
+                if (!user) {
+                    return res.send({
+                        code: 500,
+                        message: "No user with supplied ID"
+                    })
+                }
+
+                user.metadata = profile;
+                user.save();
+                res.send({
+                    code: 200,
+                    message: "User correctly updated"
+                })
+            })
+        }
+    } catch (e) { }
+})
+
+router.get('/roles', async (req, res) => {
+    try {
+        const roles = await User.distinct( "roles" );
+
+        res.json({
+            status: 200,
+            payload: roles.filter(role => role !== "SUPER_ADMIN")
+        })
+    } catch (e) { }
 })
 
 

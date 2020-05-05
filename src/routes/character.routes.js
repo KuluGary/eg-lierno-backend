@@ -4,17 +4,20 @@ const jwt = require('jsonwebtoken');
 const secret = process.env.SECRET || require('../configs/config');
 
 let Character = require('../models/character');
+let Campaign = require('../models/campaign');
 
 router.get('/characters', async (req, res) => {
     try {
         const token = req.headers.authorization.split(" ")[1];
         const decoded = jwt.verify(token, secret.key);
+        let campaignsDm = (await Campaign.distinct("_id", { dm: decoded.userId }))
+            .map(campaign => campaign.toString());
         let characters;
 
         if (decoded.roles.some(role => role === "SUPER_ADMIN")) {
             characters = await Character.find({});
         } else {
-            characters = await Character.find({ player: decoded.userId })
+            characters = await Character.find( { $or: [{ player: decoded.userId }, { "flavor.campaign": { $elemMatch: { campaignId: { $in: campaignsDm } } } }]} );
         }
 
         res.json({

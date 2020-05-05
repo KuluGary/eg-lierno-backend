@@ -6,7 +6,9 @@
   "scripts": {
     "start": "nodemon src/server.js",
     "client": "npm run start --prefix ../client",
+    "client-electron": "npm run electron-dev --prefix ../client",
     "dev": "concurrently \"npm run start\" \"npm run client\"",
+    "dev-electron": "concurrently \"npm run start\" \"npm run client-electron\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Gary Cuétara & Eli Lage",
