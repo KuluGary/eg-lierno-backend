@@ -67,7 +67,11 @@ router.post('/register', async (req, res) => {
                     password: hash,
                     metadata,
                     roles: [
-                        "USER"
+                        "CHARACTER_ACCESS", 
+                        "NPC_ACCESS", 
+                        "INITIATIVE_ACCESS", 
+                        "ALIGNMENT_ACCESS", 
+                        "BESTIARY_ACCESS"
                     ]
                 })
 
