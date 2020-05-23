@@ -11,11 +11,11 @@ router.get('/classes', async (req, res) => {
         const decoded = jwt.verify(token, secret.key);
 
         if (decoded) {        
-            const races = await Class.find({});            
+            const classes = await Class.find({});            
             res.json({
                 status: 200,
                 message: "ok",
-                payload: races
+                payload: classes
             })
         } else {
             res.json({

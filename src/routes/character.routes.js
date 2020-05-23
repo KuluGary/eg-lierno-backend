@@ -17,7 +17,7 @@ router.get('/characters', async (req, res) => {
         if (decoded.roles.some(role => role === "SUPER_ADMIN")) {
             characters = await Character.find({});
         } else {
-            characters = await Character.find( { $or: [{ player: decoded.userId }, { "flavor.campaign": { $elemMatch: { campaignId: { $in: campaignsDm } } } }]} );
+            characters = await Character.find({ $or: [{ player: decoded.userId }, { "flavor.campaign": { $elemMatch: { campaignId: { $in: campaignsDm } } } }] });
         }
 
         res.json({
@@ -135,6 +135,29 @@ router.get('/alignments', async (req, res) => {
             message: "Internal server error"
         })
     }
+})
+
+router.post('/characterinfo', async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(" ")[1];
+        const decoded = jwt.verify(token, secret.key);
+
+        if (decoded) {
+            const { characterIds } = req.body;
+
+            const characters = await Character.find({ _id: { $in: characterIds } });
+
+            const payload = {
+                characters
+            }
+
+            res.json({
+                status: 200,
+                message: "ok",
+                payload
+            })
+        }
+    } catch (e) { }
 })
 
 module.exports = router;

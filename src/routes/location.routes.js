@@ -58,6 +58,32 @@ router.get('/location/:id', async (req, res) => {
     }
 })
 
+router.get('/campaignmap/:id', async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(" ")[1];
+        const decoded = jwt.verify(token, secret.key);
+        if (decoded) {
+            const location = await Location.find({ "mapStats.hierarchy.parent": req.params.id });
+
+            res.json({
+                status: 200,
+                message: "ok",
+                payload: location
+            })
+        } else {
+            res.json({
+                status: 400,
+                message: "No JWT"
+            })
+        }
+        
+    } catch(e) {
+        res.json({
+            status: 500,
+            message: "Internal server error"
+        })
+    }
+})
 
 module.exports = router;
 

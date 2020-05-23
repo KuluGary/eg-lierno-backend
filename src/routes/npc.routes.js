@@ -84,38 +84,12 @@ router.post('/npc', async (req, res) => {
 
 router.put('/npc', async (req, res) => {
     try {
-        // Npc.findById(req.body._id, (err, npc) => {
-        //     if (!npc) {
-        //         res.status(400).send('El npc no ha podido ser modificado.') 
-        //     } else {
-        //         npc.modified = req.body;
-
-        //         npc.save(() => {
-        //             if (err) {
-        //                 return res.status(400).send('El npc no ha podido ser modificado.') 
-        //             } else {
-        //                 return res.json({ status: 200, message: "Npc modificado" })
-        //             }
-        //         })
-        //     }
-        // })
         Npc.findByIdAndUpdate(req.body._id, req.body, function (err, npc) {
             if (err) {
                 return res.status(400).send('El npc no ha podido ser modificado.') 
             }
             return res.json({ status: 200, message: "Npc modificado" })
-            
-
         })
-        // const npc = req.body;
-        // const newNpc = new Npc(npc);
-        // newNpc.save(function(err) {
-        //     if (err) {
-        //         return res.status(400).send('El npc no ha podido ser añadido.')
-        //     }
-        // })
-        //     .then(() => res.json({ status: 200, message: "Npc añadido" }))
-        //     .catch(err => res.status(400).json('Error: ' + err))
     } catch (e) { 
         res.status(400).send('El npc no ha podido ser añadido.') 
     }

@@ -19,6 +19,11 @@ const CampaignSchema = new Schema({
         required: true,
         unique: false
       },
+      flavor: {
+        type: Object,
+        required: false,
+        unique: false
+      },
       completed: {
         type: Boolean,
         required: true,

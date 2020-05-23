@@ -86,18 +86,28 @@ router.post('/bestiary', async (req, res) => {
 
 router.put('/bestiary', async (req, res) => {
     try {
-        const monster = req.body;
-        // const newMonster = new Monster(monster);
-        monster.save(function(err) {
+        Monster.findByIdAndUpdate(req.body._id, req.body, function (err, monster) {
             if (err) {
-                res.status(400).send('El monstruo no ha podido ser añadido.')
+                return res.status(400).send('El monstruo no ha podido ser modificado.')
             }
+            return res.json({ status: 200, message: "Npc modificado" })
         })
-            .then(() => res.json({ status: 200, message: "Monstruo añadido" }))
-            .catch(err => res.status(400).json('Error: ' + err))
-    } catch (e) { 
+    } catch (e) {
         res.status(400).send('El monstruo no ha podido ser añadido.')
     }
+    // try {
+    //     const monster = req.body;
+    //     // const newMonster = new Monster(monster);
+    //     monster.save(function(err) {
+    //         if (err) {
+    //             res.status(400).send('El monstruo no ha podido ser añadido.')
+    //         }
+    //     })
+    //         .then(() => res.json({ status: 200, message: "Monstruo añadido" }))
+    //         .catch(err => res.status(400).json('Error: ' + err))
+    // } catch (e) { 
+    //     res.status(400).send('El monstruo no ha podido ser añadido.')
+    // }
 })
 
 

@@ -67,10 +67,10 @@ router.post('/register', async (req, res) => {
                     password: hash,
                     metadata,
                     roles: [
-                        "CHARACTER_ACCESS", 
-                        "NPC_ACCESS", 
-                        "INITIATIVE_ACCESS", 
-                        "ALIGNMENT_ACCESS", 
+                        "CHARACTER_ACCESS",
+                        "NPC_ACCESS",
+                        "INITIATIVE_ACCESS",
+                        "ALIGNMENT_ACCESS",
                         "BESTIARY_ACCESS"
                     ]
                 })
@@ -94,6 +94,37 @@ router.get('/me', async (req, res) => {
             status: 200,
             payload: user[0]
         })
+    } catch (e) { }
+})
+
+router.post('/players', async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(" ")[1];
+        const decoded = jwt.verify(token, secret.key);
+
+        if (decoded) {
+            const { userIds, dmId } = req.body;
+
+            const players = await User.find({ _id: { $in: userIds } });
+            const dm = await User.find({ _id: dmId })
+
+            const payload = {
+                dm: {
+                    name: dm[0].username,
+                    avatar: dm[0].metadata.avatar
+                },
+                players: players.map(player => ({
+                    name: player.username,
+                    avatar: player.metadata.avatar
+                }))
+            }
+
+            res.json({
+                status: 200,
+                message: "ok",
+                payload
+            })
+        }
     } catch (e) { }
 })
 
@@ -133,7 +164,7 @@ router.post('/me/:id', async (req, res) => {
 
 router.get('/roles', async (req, res) => {
     try {
-        const roles = await User.distinct( "roles" );
+        const roles = await User.distinct("roles");
 
         res.json({
             status: 200,

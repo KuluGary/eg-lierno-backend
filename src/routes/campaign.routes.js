@@ -32,6 +32,48 @@ router.get('/campaigns', async (req, res) => {
     }
 })
 
+router.get('/campaigns/:id', async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(" ")[1];
+        const decoded = jwt.verify(token, secret.key);
+        if (decoded) {
+            const campaign = await Campaign.findById(req.params.id);
+
+            res.json({
+                status: 200,
+                message: "ok",
+                payload: campaign
+            })
+        } else {
+            res.json({
+                status: 400,
+                message: "No JWT"
+            })
+        }
+
+    } catch (e) {
+        res.json({
+            status: 500,
+            message: "Internal server error"
+        })
+    }
+})
+
+router.post('/campaigns/:id', async (req, res) => {
+    try {
+        console.log(req.params.id, req.body)
+        await Campaign.findByIdAndUpdate(req.params.id, req.body, function (err, npc) {
+            if (err) {
+                return res.status(500).send('La campaña no ha podido ser modificada')
+            }
+            console.log(npc)
+            return res.json({ status: 200, message: "Campaña modificada" })
+        })
+    } catch (e) {
+        res.status(400).send('La campaña no ha podido ser modificada.')
+    }
+})
+
 
 module.exports = router;
 
