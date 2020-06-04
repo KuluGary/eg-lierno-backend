@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 const secret = require('../configs/config');
 
 let Npc = require('../models/npc');
-let User = require('../models/user');
 let Campaign = require('../models/campaign');
 
 router.get('/npc', async (req, res) => {
@@ -13,10 +12,13 @@ router.get('/npc', async (req, res) => {
         const decoded = jwt.verify(token, secret.key);
 
         if (decoded) {
-            let campaigns = await User.distinct("campaigns", { _id: decoded.userId })
+            let campaigns = (await Campaign.distinct("_id", { players: decoded.userId }))
+                .map(campaign => campaign.toString());
+
             let campaignsDm = (await Campaign.distinct("_id", { dm: decoded.userId }))
                 .map(campaign => campaign.toString());
-            let npcs = await Npc.find({ "flavor.campaign": { $elemMatch: { $or: [{ campaignId: { $in: campaigns }, unlocked: true }, { campaignId: { $in: campaignsDm } },] } } })
+
+            let npcs = await Npc.find({ "flavor.campaign": { $elemMatch: { $or: [{ campaignId: { $in: campaigns }, unlocked: true }, { campaignId: { $in: campaignsDm } }] } } })
 
             res.json({
                 status: 200,
@@ -68,7 +70,7 @@ router.post('/npc', async (req, res) => {
     try {
         const npc = req.body;
         const newNpc = new Npc(npc);
-        newNpc.save(function(err) {
+        newNpc.save(function (err) {
             if (err) {
                 return res.status(400).status({
                     message: "El npc ya existe."
@@ -77,7 +79,7 @@ router.post('/npc', async (req, res) => {
         })
             .then(() => res.json({ status: 200, message: "Npc añadido" }))
             .catch(err => res.status(400).json('Error: ' + err))
-    } catch (e) { 
+    } catch (e) {
         res.status(400).send('El npc no ha podido ser añadido.')
     }
 })
@@ -86,12 +88,12 @@ router.put('/npc', async (req, res) => {
     try {
         Npc.findByIdAndUpdate(req.body._id, req.body, function (err, npc) {
             if (err) {
-                return res.status(400).send('El npc no ha podido ser modificado.') 
+                return res.status(400).send('El npc no ha podido ser modificado.')
             }
             return res.json({ status: 200, message: "Npc modificado" })
         })
-    } catch (e) { 
-        res.status(400).send('El npc no ha podido ser añadido.') 
+    } catch (e) {
+        res.status(400).send('El npc no ha podido ser añadido.')
     }
 })
 

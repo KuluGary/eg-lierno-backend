@@ -10,14 +10,19 @@ router.get('/characters', async (req, res) => {
     try {
         const token = req.headers.authorization.split(" ")[1];
         const decoded = jwt.verify(token, secret.key);
-        let campaignsDm = (await Campaign.distinct("_id", { dm: decoded.userId }))
-            .map(campaign => campaign.toString());
+        
+        let campaignsDm = (await Campaign.find({ "dm": decoded.userId }))
+        let campaignCharacters = [];
+        campaignsDm.forEach(campaign => campaignCharacters.push(...campaign.toJSON()["characters"]))
+
         let characters;
 
         if (decoded.roles.some(role => role === "SUPER_ADMIN")) {
             characters = await Character.find({});
         } else {
-            characters = await Character.find({ $or: [{ player: decoded.userId }, { "flavor.campaign": { $elemMatch: { campaignId: { $in: campaignsDm } } } }] });
+            characters = await Character.find({
+                $or: [{ player: decoded.userId }, { "_id": { $in: campaignCharacters } }]
+            });
         }
 
         res.json({
