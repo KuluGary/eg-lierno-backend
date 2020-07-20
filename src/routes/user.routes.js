@@ -173,6 +173,30 @@ router.get('/roles', async (req, res) => {
     } catch (e) { }
 })
 
+router.post('/reset', async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(" ")[1];
+        const decoded = jwt.verify(token, secret.key);
+
+        if (decoded) {
+            const { email, password } = req.body;
+            const hashPwd = await bcrypt.hash(password, 10);
+            console.log(password, hashPwd);
+
+            User.findOneAndUpdate({ "metadata.email": email }, { "$set": { password: hashPwd } }, { new: true }, (err, user) => {
+                if (err) {
+                    res.status(400).json('Error: ' + err)
+                } else {
+                    res.json({
+                        status: 200,
+                        message: "User " + email + " updated correctly."
+                    })
+                }
+            });
+
+        }
+    } catch(e) { }
+})
 
 module.exports = router;
 
