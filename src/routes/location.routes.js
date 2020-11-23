@@ -1,87 +1,55 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const secret = require('../configs/config');
+const utils = require('../utils/utils');
 
 let Location = require('../models/location');
 
 router.get('/locations', async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
+        const { valid, message } = utils.validateToken(req.headers.authorization);
 
-        if (decoded) {        
-            const locations = await Location.find({});            
-            res.json({
-                status: 200,
-                message: "ok",
-                payload: locations
-            })
+        if (valid) {
+            const locations = await Location.find({});
+            res.status(200).json({ payload: locations })
         } else {
-            res.json({
-                status: 400,
-                message: "Invalid JWT"
-            })
+            res.status(500).json({ message })
         }
     } catch (e) {
-        res.json({
-            status: 500,
-            message: "Internal server error: " + e
-        })
+        res.status(500).json({ message: "Error: " + e })
     }
 })
 
 router.get('/location/:id', async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
-        if (decoded) {
+        const { valid, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
             const location = await Location.findById(req.params.id);
 
-            res.json({
-                status: 200,
-                message: "ok",
-                payload: location
-            })
+            res.status(200).json({ payload: location })
         } else {
-            res.json({
-                status: 400,
-                message: "No JWT"
-            })
+            res.status(500).json({ message })
         }
-        
-    } catch(e) {
-        res.json({
-            status: 500,
-            message: "Internal server error"
-        })
+
+    } catch (e) {
+        res.status(500).json({ message: "Error: " + e })
     }
 })
 
 router.get('/campaignmap/:id', async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
-        if (decoded) {
+        const { valid, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
             const location = await Location.find({ "mapStats.hierarchy.parent": req.params.id });
 
-            res.json({
-                status: 200,
-                message: "ok",
-                payload: location
-            })
+            res.status(200).json({ payload: location })
         } else {
-            res.json({
-                status: 400,
-                message: "No JWT"
-            })
+            res.status(500).json({ message })
         }
-        
-    } catch(e) {
-        res.json({
-            status: 500,
-            message: "Internal server error"
-        })
+
+    } catch (e) {
+        res.status(500).json({ message: "Error: " + e })
     }
 })
 

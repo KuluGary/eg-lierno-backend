@@ -1,36 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const secret = require('../configs/config');
+const utils = require('../utils/utils');
 
 let Spell = require('../models/spell');
 
 router.post('/spells', async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+        const type = req.query.type;
 
-        if (decoded) {
-            const spellIds = req.body;
+        if (valid) {
+            let spells;
 
-            const spells = await Spell.find({_id: {$in: spellIds}});  
+            if (type === "allSpells" && decoded.roles.includes("SUPER_ADMIN")) {
+                spells = await Spell.find({});
+            } else {
+                const spellIds = req.body;
+                
+                spells = await Spell.find({_id: {$in: spellIds}});                  
+            }
 
-            res.json({
-                status: 200,
-                message: "ok",
-                payload: spells
-            })
+            res.status(200).json({ payload: spells });
         } else {
-            res.json({
-                status: 400,
-                message: "Invalid JWT"
-            })
+            res.status(500).json({ message });
         }
     } catch (e) {
-        res.json({
-            status: 500,
-            message: "Internal server error: " + e
-        })
+        res.status(500).json({ message: "Error: " + e });
     }
 })
 

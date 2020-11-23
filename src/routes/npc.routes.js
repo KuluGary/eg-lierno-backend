@@ -1,17 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const secret = require('../configs/config');
+const utils = require('../utils/utils');
 
 let Npc = require('../models/npc');
 let Campaign = require('../models/campaign');
 
 router.get('/npc', async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
-        if (decoded) {
+        if (valid) {
             let campaigns = (await Campaign.distinct("_id", { players: decoded.userId }))
                 .map(campaign => campaign.toString());
 
@@ -20,83 +18,97 @@ router.get('/npc', async (req, res) => {
 
             let npcs = await Npc.find({ "flavor.campaign": { $elemMatch: { $or: [{ campaignId: { $in: campaigns }, unlocked: true }, { campaignId: { $in: campaignsDm } }] } } })
 
-            res.json({
-                status: 200,
-                message: "ok",
-                payload: Array.from(new Set(npcs.map(a => a.id))).map(id => npcs.find(a => a.id === id))
-            })
+            res.status(200).json({ payload: Array.from(new Set(npcs.map(a => a.id))).map(id => npcs.find(a => a.id === id)) })
         } else {
-            res.json({
-                status: 400,
-                message: "Invalid JWT"
-            })
+            res.status(500).json({ message })
         }
     } catch (e) {
-        res.json({
-            status: 500,
-            message: "Internal server error"
-        })
+        res.status(500).json({ message: "Error: " + e })
     }
 })
 
 router.get('/npc/:id', async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
-        if (decoded) {
+        const { valid, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
             const npc = await Npc.findById(req.params.id);
 
-            res.json({
-                status: 200,
-                message: "ok",
-                payload: npc
-            })
+            res.status(200).json({ payload: npc })
         } else {
-            res.json({
-                status: 400,
-                message: "No JWT"
-            })
+            res.status(500).json({ message })
         }
 
     } catch (e) {
-        res.json({
-            status: 500,
-            message: "Internal server error"
-        })
+        res.status(500).json({ message: "Error: " + e })
     }
 })
 
 router.post('/npc', async (req, res) => {
     try {
-        const npc = req.body;
-        const newNpc = new Npc(npc);
-        newNpc.save(function (err) {
-            if (err) {
-                return res.status(400).status({
-                    message: "El npc ya existe."
-                })
-            }
-        })
-            .then(() => res.json({ status: 200, message: "Npc añadido" }))
-            .catch(err => res.status(400).json('Error: ' + err))
-    } catch (e) {
-        res.status(400).send('El npc no ha podido ser añadido.')
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
+            const npc = req.body;
+            npc["createdBy"] = decoded["userId"];
+            
+            const newNpc = new Npc(npc);
+
+            newNpc.save(function (err) {
+                if (err) { return res.status(500).json({ message: err }) }
+
+                res.status(200).json({ message: "Npc añadido correctamente", value: newNpc._id })
+            })
+        } else {
+            res.status(500).json({ message })
+        }
+    } catch (err) {
+        res.status(500).json({ message: "Error: " + err })
     }
 })
 
 router.put('/npc', async (req, res) => {
     try {
-        Npc.findByIdAndUpdate(req.body._id, req.body, function (err, npc) {
-            if (err) {
-                return res.status(400).send('El npc no ha podido ser modificado.')
-            }
-            return res.json({ status: 200, message: "Npc modificado" })
-        })
+        const { valid, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
+            Npc.findByIdAndUpdate(req.body._id, req.body, function (err, npc) {
+                if (err) {
+                    return res.status(500).json({ message: 'Error: ' + err })
+                }
+                return res.status(200).json({ message: "Npc modificado" })
+            })
+        } else {
+            res.status(500).json({ message })
+        }
     } catch (e) {
-        res.status(400).send('El npc no ha podido ser añadido.')
+        res.status(500).json({ message: 'Error: ' + e })
     }
 })
 
+router.delete('/npc/:id', async (req, res) => {
+    try {
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
+            const npc = await Npc.findById(req.params.id);
+
+            if (utils.validateOwnershipt(decoded.userId, npc.player)) {
+                await Npc.findByIdAndDelete(req.params.id, function (err) {
+                    return res.status(500).json({ message: "Error: " + err })
+                })
+
+                res.status(200).json({ message: "El PNJ ha sido eliminado" })
+            } else {
+                res.statys(500).json({ message: "Discordancia entre usuario y propietario del PNJ." })
+            }            
+        } else {
+            res.status(500).json({ message })
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error: ' + error })
+    }
+})
 
 module.exports = router;
 

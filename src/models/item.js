@@ -13,8 +13,7 @@ const itemSchema = new Schema({
       type: String,
       required: true,
       unique: false,
-      trim: true,
-      minlength: 6
+      trim: true
     },
     image: {
       type: Object,

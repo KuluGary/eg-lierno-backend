@@ -1,65 +1,61 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const secret = require('../configs/config');
-const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const secret = require("../configs/config");
+const bcrypt = require("bcrypt");
+const discordUtils = require("../utils/discord");
+const utils = require('../utils/utils')
 
-let User = require('../models/user');
+let User = require("../models/user");
 
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
     try {
         const { username, password } = req.body;
-        const users = await User.find({ username });
+        const user = await User.findOne({ username });
 
-        if (users.length === 1) {
-            const user = users[0];
-
+        if (user) {
             bcrypt.compare(password, user.password, (err, result) => {
                 if (result) {
                     const payload = {
                         userId: user._id,
-                        roles: user.roles
-                    }
+                        roles: user.roles,
+                    };
 
                     const token = jwt.sign(payload, secret.key, {
-                        expiresIn: "24h"
+                        expiresIn: "24h",
                     });
 
-                    res.json({
+                    res.status(200).json({
                         status: "ok",
-                        code: 200,
                         payload: {
-                            token
-                        }
-                    })
+                            token,
+                        },
+                    });
                 } else {
-                    res.json({
-                        status: 400,
-                        message: "Wrong credentials"
-                    })
+                    res.status(500).json({
+                        message: "Contraseña incorrecta",
+                    });
                 }
-            })
+            });
         } else {
-            res.json({
-                status: 500,
-                message: "Internal server error"
-            })
+            res.status(500).json({
+                message: "Nombre de usuario incorrecto",
+            });
         }
     } catch (e) {
-        console.log(e)
+        console.log(e);
     }
-})
+});
 
-router.post('/register', async (req, res) => {
+router.post("/register", async (req, res) => {
     try {
         const { username, password, metadata } = req.body;
-        const checkUser = await User.find({ username });
+        const checkUser = await User.findOne({ username });
 
-        if (checkUser.length > 0) {
-            res.json({
-                status: 400,
-                message: "User already registered"
-            })
+        if (checkUser) {
+            res.status(400).json({
+                message: "Usuario ya registrado",
+            });
         } else {
             bcrypt.hash(password, 10, (err, hash) => {
                 const newUser = new User({
@@ -71,132 +67,200 @@ router.post('/register', async (req, res) => {
                         "NPC_ACCESS",
                         "INITIATIVE_ACCESS",
                         "ALIGNMENT_ACCESS",
-                        "BESTIARY_ACCESS"
-                    ]
-                })
+                        "BESTIARY_ACCESS",
+                    ],
+                });
 
-                newUser.save()
-                    .then(() => res.json({ status: 200, message: "User registered" }))
-                    .catch(err => res.status(400).json('Error: ' + err))
+                newUser.save(function (err) {
+                    if (err) {
+                        return res.status(500).json({ message: err });
+                    }
+
+                    res.status(200).json({ message: "Usuario creado correctamente" });
+                });
+            });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err });
+    }
+});
+
+router.get("/me", async (req, res) => {
+    try {
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
+            const user = await User.findById(decoded.userId);
+
+            res.status(200).json({
+                payload: user,
+            });
+        } else {
+            res.status(500).json({
+                message
             })
         }
-    } catch (e) { }
-})
+    } catch (e) {
+        res.status(500).json({
+            message: "Error: " + e,
+        });
+    }
+});
 
-router.get('/me', async (req, res) => {
+router.post("/players", async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
+        const { valid } = utils.validateToken(req.headers.authorization);
 
-        const user = await User.find({ _id: decoded.userId });
-
-        res.json({
-            status: 200,
-            payload: user[0]
-        })
-    } catch (e) { }
-})
-
-router.post('/players', async (req, res) => {
-    try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
-
-        if (decoded) {
+        if (valid) {
             const { userIds, dmId } = req.body;
 
             const players = await User.find({ _id: { $in: userIds } });
-            const dm = await User.find({ _id: dmId })
+            const dm = await User.findById(dmId);
 
             const payload = {
                 dm: {
-                    name: dm[0].username,
-                    avatar: dm[0].metadata.avatar
+                    id: dm._id,
+                    name: dm.username,
+                    avatar: dm.metadata.avatar,
+                    metadata: dm.metadata,
                 },
-                players: players.map(player => ({
+                players: players.map((player) => ({
+                    id: player._id,
                     name: player.username,
-                    avatar: player.metadata.avatar
-                }))
-            }
+                    avatar: player.metadata.avatar,
+                    metadata: player.metadata,
+                })),
+            };
 
-            res.json({
-                status: 200,
-                message: "ok",
-                payload
-            })
+            res.status(200).json({
+                payload,
+            });
         }
-    } catch (e) { }
-})
+    } catch (e) {
+        res.status(500).json({ message: "Error: " + e });
+    }
+});
 
-router.post('/me/:id', async (req, res) => {
+router.post("/me/:id", async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
+        const { valid, message } = utils.validateToken(req.headers.authorization);
 
-        if (decoded) {
+        if (valid) {
             const { profile } = req.body;
 
             if (!profile) {
-                res.send({
-                    code: 500,
-                    message: "No updated profile sent"
-                })
+                res
+                    .status(500)
+                    .json({ message: "No se ha enviado un perfil actualizado." });
             }
 
             User.findById(req.params.id, (err, user) => {
                 if (!user) {
-                    return res.send({
-                        code: 500,
-                        message: "No user with supplied ID"
-                    })
+                    return res.status(500).send({
+                        message: "No hay usuario con el ID seleccionado.",
+                    });
+                }
+
+                if (profile.discordName) {
+                    if (user.metadata.discordName !== profile.discordName) {
+                        profile["discordId"] = discordUtils.get_userid(profile.discordName);
+                    }
                 }
 
                 user.metadata = profile;
+
                 user.save();
-                res.send({
-                    code: 200,
-                    message: "User correctly updated"
-                })
+                res.json(200).send({ message: "Usuario actualizado." });
+            });
+        } else {
+            res.status(500).json({
+                message
             })
         }
     } catch (e) { }
-})
+});
 
-router.get('/roles', async (req, res) => {
+router.get("/roles", async (req, res) => {
     try {
         const roles = await User.distinct("roles");
 
-        res.json({
-            status: 200,
-            payload: roles.filter(role => role !== "SUPER_ADMIN")
-        })
-    } catch (e) { }
-})
+        res.status(200).json({
+            payload: roles.filter((role) => role !== "SUPER_ADMIN"),
+        });
+    } catch (e) {
+        res.status(500).json({
+            message: "No se han podido entregar los roles",
+        });
+    }
+});
 
-router.post('/reset', async (req, res) => {
+router.post("/reset", async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
+        const { valid, message } = utils.validateToken(req.headers.authorization);
 
-        if (decoded) {
+        if (valid) {
             const { email, password } = req.body;
             const hashPwd = await bcrypt.hash(password, 10);
-            console.log(password, hashPwd);
 
-            User.findOneAndUpdate({ "metadata.email": email }, { "$set": { password: hashPwd } }, { new: true }, (err, user) => {
-                if (err) {
-                    res.status(400).json('Error: ' + err)
+            User.findOneAndUpdate(
+                { "metadata.email": email },
+                { $set: { password: hashPwd } },
+                { new: true },
+                (err, user) => {
+                    if (err) {
+                        res.status(500).json({ message: "Error: " + err });
+                    } else {
+                        res.json({
+                            status: 200,
+                            message: "Usuario " + email + " actualizado correctamente.",
+                        });
+                    }
+                }
+            );
+        } else {
+            res.status(500).json({ message })
+        }
+    } catch (e) {
+        res.status(500).json({ message: "Error: " + e });
+    }
+});
+
+router.get("/users", async (req, res) => {
+    try {
+        const type = req.query.type;
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
+            if (type === 'allUsers') {
+                if (decoded.roles.includes("SUPER_ADMIN")) {
+                    const users = await User.find({});
+
+                    res.status(200).json({
+                        payload: users
+                    })
                 } else {
-                    res.json({
-                        status: 200,
-                        message: "User " + email + " updated correctly."
+                    res.status(500).json({
+                        message: message
                     })
                 }
-            });
+            } else {
+                const user = await User.findById(decoded.userId);
+                const userFriendList = user.metadata.friendList;
+                const friends = await User.find({ "_id": { $in: userFriendList } })
 
+                res.status(200).json({
+                    payload: friends
+                })
+
+            }
+        } else {
+            res.status(500).json({
+                message: message
+            })
         }
-    } catch(e) { }
-})
+    } catch (error) {
+        res.status(500).json({ message: "Error: " + error });
+    }
+});
 
 module.exports = router;
-

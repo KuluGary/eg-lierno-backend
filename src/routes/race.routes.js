@@ -1,58 +1,39 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const secret = require('../configs/config');
+const utils = require('../utils/utils');
 
 let Race = require('../models/race');
 
 router.get('/races', async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
+        const { valid, message } = utils.validateToken(req.headers.authorization);
 
-        if (decoded) {        
-            const races = await Race.find({});            
-            res.json({
-                status: 200,
-                message: "ok",
-                payload: races
-            })
+        if (valid) {
+            const races = await Race.find({});
+
+            res.status(200).json({ payload: races });
         } else {
-            res.json({
-                status: 400,
-                message: "Invalid JWT"
-            })
+            res.status(500).json({ message });
         }
     } catch (e) {
-        res.json({
-            status: 500,
-            message: "Internal server error: " + e
-        })
+        res.status(500).json({ message: "Error: " + e })
     }
 })
 
 router.get('/race/:id', async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
-        if (decoded) {        
+        const { valid, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
             const race = await Race.findById(req.params.id);
-        res.json({
-            status: 200,
-            message: "ok",
-            payload: race
-        })
+
+            res.status(200).json({ payload: race });
+
         } else {
-            res.json({
-                status: 400,
-                message: "Invalid JWT"
-            })
-        }        
-    } catch(e) {
-        res.json({
-            status: 500,
-            message: "Internal server error: " + e
-        })
+            res.status(500).json({ message })
+        }
+    } catch (e) {
+        res.status(500).json({ message: "Error: " + e })
     }
 })
 

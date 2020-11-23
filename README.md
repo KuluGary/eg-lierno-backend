@@ -1,5 +1,14 @@
-# LIERNO App
-Lierno is a web-app for usage in DnD campaigns set in Lierno.
+# eg-lierno-backend
+Backend for Lierno app.
 
-## Installation
-Download or clone the repository. Navigate to the server folder in your command line and run 'npm run dev'. This will concurrently run the client and server apps.
+## Stack
+Node v12
+express v4
+mongoose v5
+
+## Scripts
+- `start` runs the server in development mode with nodemon.
+- `dev` runs the server & client in the browser.
+- `dev-electron` runs the server & client in desktop.
+
+

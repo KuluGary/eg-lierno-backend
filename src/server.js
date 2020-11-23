@@ -1,34 +1,21 @@
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
+const app = require('./app');
+const connection = require('./db');
+const socket = require("socket.io");
 
-require('dotenv').config();
-
-const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors());
-app.use(express.json());
+const server = app.listen(port, () => {
+    console.log('Server running on port ' + port);
+})
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/lierno';
-mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true });
-
-const connection = mongoose.connection;
 connection.once('open', () => {
     console.log("DB connected");
 })
 
-app.use('/api/v1/auth', require('./routes/user.routes'))
-app.use('/api/v1', require('./routes/character.routes'))
-app.use('/api/v1', require('./routes/item.routes'))
-app.use('/api/v1', require('./routes/monster.routes'))
-app.use('/api/v1', require('./routes/race.routes'))
-app.use('/api/v1', require('./routes/class.routes'))
-app.use('/api/v1', require('./routes/location.routes'))
-app.use('/api/v1', require('./routes/npc.routes'))
-app.use('/api/v1', require('./routes/campaign.routes'))
-app.use('/api/v1', require('./routes/spell.routes'))
+const io = socket(server);
+app.io = io;
 
-app.listen(port, () => {
-    console.log('server running on port ' + port);
-})
+io.on('connection', function (socket) {
+    console.log('Socket connected:', socket.client.id);    
+});
+

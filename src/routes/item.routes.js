@@ -1,39 +1,63 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const secret = require('../configs/config');
-const bcrypt = require('bcrypt');
+const utils = require('../utils/utils');
 
 let Item = require('../models/item');
 
-router.post('/items', async (req, res) => {
+router.get('/items', async (req, res) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, secret.key);
+        const { valid, message } = utils.validateToken(req.headers.authorization);
 
-        if (decoded) {
-            const itemsIds = req.body;
+        if (valid) {
+            const items = await Item.find({});
 
-            const items = await Item.find({_id: {$in: itemsIds}});            
-            res.json({
-                status: 200,
-                message: "ok",
-                payload: items
-            })
+            res.status(500).json({ payload: items })
         } else {
-            res.json({
-                status: 400,
-                message: "Invalid JWT"
-            })
+            res.status(500).json({ message });
         }
-    } catch (e) {
-        res.json({
-            status: 500,
-            message: "Internal server error: " + e
-        })
+    } catch (error) {
+        res.status(500).json({ message: "Error: " + error })
     }
 })
 
+router.post('/items', async (req, res) => {
+    try {
+        const { valid, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
+            const itemsIds = req.body;
+            const items = await Item.find({ _id: { $in: itemsIds } });
+
+            res.status(200).json({ payload: items })
+        } else {
+            res.status(500).json({ message })
+        }
+    } catch (error) {
+        res.json({ message: "Error: " + error })
+    }
+})
+
+router.post('/item', async (req, res) => {
+    try {
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
+            const item = req.body;
+            item["createdBy"] = decoded["userId"];
+            const newItem = new Item(item);
+
+            newItem.save(function (err) {
+                if (err) { return res.status(500).json({ message: "Error: " + err }) }
+
+                res.status(200).json({ payload: newItem._id })
+            })
+        } else {
+            res.status(500).json({ message });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error })
+    }
+})
 
 module.exports = router;
 
