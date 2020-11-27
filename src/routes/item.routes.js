@@ -6,15 +6,10 @@ let Item = require('../models/item');
 
 router.get('/items', async (req, res) => {
     try {
-        const { valid, message } = utils.validateToken(req.headers.authorization);
+        const items = await Item.find({});
 
-        if (valid) {
-            const items = await Item.find({});
+        res.status(200).json({ payload: items })
 
-            res.status(500).json({ payload: items })
-        } else {
-            res.status(500).json({ message });
-        }
     } catch (error) {
         res.status(500).json({ message: "Error: " + error })
     }
@@ -22,16 +17,10 @@ router.get('/items', async (req, res) => {
 
 router.post('/items', async (req, res) => {
     try {
-        const { valid, message } = utils.validateToken(req.headers.authorization);
-
-        if (valid) {
             const itemsIds = req.body;
             const items = await Item.find({ _id: { $in: itemsIds } });
 
             res.status(200).json({ payload: items })
-        } else {
-            res.status(500).json({ message })
-        }
     } catch (error) {
         res.json({ message: "Error: " + error })
     }

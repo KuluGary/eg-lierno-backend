@@ -55,15 +55,9 @@ router.put('/characters/:id', async (req, res) => {
 
 router.get('/characters/:id', async (req, res) => {
     try {
-        const { valid, message } = utils.validateToken(req.headers.authorization);
+        const character = await Character.findById(req.params.id);
 
-        if (valid) {
-            const character = await Character.findById(req.params.id);
-
-            res.status(200).json({ payload: character })
-        } else {
-            res.status(500).json({ message })
-        }
+        res.status(200).json({ payload: character })
     } catch (error) {
         res.status(500).json({ message: 'Error: ' + error })
     }

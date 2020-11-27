@@ -6,15 +6,9 @@ let Race = require('../models/race');
 
 router.get('/races', async (req, res) => {
     try {
-        const { valid, message } = utils.validateToken(req.headers.authorization);
+        const races = await Race.find({});
 
-        if (valid) {
-            const races = await Race.find({});
-
-            res.status(200).json({ payload: races });
-        } else {
-            res.status(500).json({ message });
-        }
+        res.status(200).json({ payload: races });
     } catch (e) {
         res.status(500).json({ message: "Error: " + e })
     }
@@ -22,16 +16,10 @@ router.get('/races', async (req, res) => {
 
 router.get('/race/:id', async (req, res) => {
     try {
-        const { valid, message } = utils.validateToken(req.headers.authorization);
+        const race = await Race.findById(req.params.id);
 
-        if (valid) {
-            const race = await Race.findById(req.params.id);
+        res.status(200).json({ payload: race });
 
-            res.status(200).json({ payload: race });
-
-        } else {
-            res.status(500).json({ message })
-        }
     } catch (e) {
         res.status(500).json({ message: "Error: " + e })
     }
