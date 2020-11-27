@@ -55,9 +55,9 @@ router.put('/characters/:id', async (req, res) => {
 
 router.get('/characters/:id', async (req, res) => {
     try {
-        const character = await Character.findById(req.params.id);
+            const character = await Character.findById(req.params.id);
 
-        res.status(200).json({ payload: character })
+            res.status(200).json({ payload: character })
     } catch (error) {
         res.status(500).json({ message: 'Error: ' + error })
     }

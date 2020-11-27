@@ -29,15 +29,9 @@ router.get('/npc', async (req, res) => {
 
 router.get('/npc/:id', async (req, res) => {
     try {
-        const { valid, message } = utils.validateToken(req.headers.authorization);
+        const npc = await Npc.findById(req.params.id);
 
-        if (valid) {
-            const npc = await Npc.findById(req.params.id);
-
-            res.status(200).json({ payload: npc })
-        } else {
-            res.status(500).json({ message })
-        }
+        res.status(200).json({ payload: npc })
 
     } catch (e) {
         res.status(500).json({ message: "Error: " + e })
@@ -51,7 +45,7 @@ router.post('/npc', async (req, res) => {
         if (valid) {
             const npc = req.body;
             npc["createdBy"] = decoded["userId"];
-            
+
             const newNpc = new Npc(npc);
 
             newNpc.save(function (err) {
@@ -101,7 +95,7 @@ router.delete('/npc/:id', async (req, res) => {
                 res.status(200).json({ message: "El PNJ ha sido eliminado" })
             } else {
                 res.statys(500).json({ message: "Discordancia entre usuario y propietario del PNJ." })
-            }            
+            }
         } else {
             res.status(500).json({ message })
         }

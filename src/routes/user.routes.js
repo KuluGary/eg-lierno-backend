@@ -109,33 +109,29 @@ router.get("/me", async (req, res) => {
 
 router.post("/players", async (req, res) => {
     try {
-        const { valid } = utils.validateToken(req.headers.authorization);
+        const { userIds, dmId } = req.body;
 
-        if (valid) {
-            const { userIds, dmId } = req.body;
+        const players = await User.find({ _id: { $in: userIds } });
+        const dm = await User.findById(dmId);
 
-            const players = await User.find({ _id: { $in: userIds } });
-            const dm = await User.findById(dmId);
+        const payload = {
+            dm: {
+                id: dm._id,
+                name: dm.username,
+                avatar: dm.metadata.avatar,
+                metadata: dm.metadata,
+            },
+            players: players.map((player) => ({
+                id: player._id,
+                name: player.username,
+                avatar: player.metadata.avatar,
+                metadata: player.metadata,
+            })),
+        };
 
-            const payload = {
-                dm: {
-                    id: dm._id,
-                    name: dm.username,
-                    avatar: dm.metadata.avatar,
-                    metadata: dm.metadata,
-                },
-                players: players.map((player) => ({
-                    id: player._id,
-                    name: player.username,
-                    avatar: player.metadata.avatar,
-                    metadata: player.metadata,
-                })),
-            };
-
-            res.status(200).json({
-                payload,
-            });
-        }
+        res.status(200).json({
+            payload,
+        });
     } catch (e) {
         res.status(500).json({ message: "Error: " + e });
     }
@@ -262,5 +258,15 @@ router.get("/users", async (req, res) => {
         res.status(500).json({ message: "Error: " + error });
     }
 });
+
+router.get("/users/:id", async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id, { username: 1, _id: 0 })
+
+        res.status(200).json({ payload: user });
+    } catch (e) {
+        res.status(500).json({ message: "Error: " + e })
+    }
+})
 
 module.exports = router;
