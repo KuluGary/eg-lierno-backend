@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
-const secret = require('../configs/config');
+const secret = process.env.JWT_KEY;
 
 const validateToken = (authorization) => {
     if (authorization) {
         const token = authorization.split(" ")[1];
 
-        return jwt.verify(token, secret.key, function (err, data) {
+        return jwt.verify(token, secret, function (err, data) {
             if (!data) {
                 return {
                     valid: false,

@@ -1,9 +1,8 @@
 const discord = require('discord.js');
-const config = require('../configs/config');
 
 const discordClient = new discord.Client();
-discordClient.login(config.discordBotToken);
 
+discordClient.login(process.env.DISCORD_TOKEN);
 function get_userid(username) {
     let user = discordClient.users.cache.find(user => user.tag == username);
 

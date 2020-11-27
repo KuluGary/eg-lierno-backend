@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const secret = require("../configs/config");
+const secret = process.env.JWT_KEY;
 const bcrypt = require("bcrypt");
 const discordUtils = require("../utils/discord");
 const utils = require('../utils/utils')
@@ -21,7 +21,7 @@ router.post("/login", async (req, res) => {
                         roles: user.roles,
                     };
 
-                    const token = jwt.sign(payload, secret.key, {
+                    const token = jwt.sign(payload, secret, {
                         expiresIn: "24h",
                     });
 
