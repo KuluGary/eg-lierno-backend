@@ -11,7 +11,7 @@ router.get('/items', async (req, res) => {
         res.status(200).json({ payload: items })
 
     } catch (error) {
-        res.status(500).json({ message: "Error: " + error })
+        res.status(400).json({ message: "Error: " + error })
     }
 })
 
@@ -22,7 +22,7 @@ router.post('/items', async (req, res) => {
 
             res.status(200).json({ payload: items })
     } catch (error) {
-        res.json({ message: "Error: " + error })
+        res.status(400).json({ message: "Error: " + error })
     }
 })
 
@@ -36,15 +36,15 @@ router.post('/item', async (req, res) => {
             const newItem = new Item(item);
 
             newItem.save(function (err) {
-                if (err) { return res.status(500).json({ message: "Error: " + err }) }
+                if (err) { return res.status(403).json({ message: "Error: " + err }) }
 
                 res.status(200).json({ payload: newItem._id })
             })
         } else {
-            res.status(500).json({ message });
+            res.status(401).json({ message });
         }
     } catch (error) {
-        res.status(500).json({ message: error })
+        res.status(400).json({ message: error })
     }
 })
 

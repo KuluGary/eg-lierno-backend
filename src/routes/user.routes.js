@@ -5,12 +5,15 @@ const secret = process.env.JWT_KEY;
 const bcrypt = require("bcrypt");
 const discordUtils = require("../utils/discord");
 const utils = require('../utils/utils')
+const mailer = require('@sendgrid/mail');
+const activateAccountTemplate = require("../utils/email-templates/activate-account");
+const recoverPasswordTemplate = require("../utils/email-templates/recover-password");
 
 let User = require("../models/user");
 
 router.post("/login", async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, remember } = req.body;
         const user = await User.findOne({ username });
 
         if (user) {
@@ -18,34 +21,97 @@ router.post("/login", async (req, res) => {
                 if (result) {
                     const payload = {
                         userId: user._id,
-                        roles: user.roles,
+                        role: user.role,
+                        isActive: user.isActive
                     };
 
                     const token = jwt.sign(payload, secret, {
-                        expiresIn: "24h",
+                        expiresIn: remember ? "15d" : "1d",
                     });
 
                     res.status(200).json({
-                        status: "ok",
                         payload: {
                             token,
                         },
                     });
                 } else {
-                    res.status(500).json({
+                    res.status(403).json({
                         message: "Contraseña incorrecta",
                     });
                 }
             });
         } else {
-            res.status(500).json({
+            res.status(403).json({
                 message: "Nombre de usuario incorrecto",
             });
         }
     } catch (e) {
-        console.log(e);
+        res.status(400).json({
+            message: "Error: " + e,
+        });
     }
 });
+
+router.post("/login/google", async (req, res) => {
+    try {
+        const { username, id, remember } = req.body;
+        const checkUser = await User.findById(id)
+
+        if (checkUser) {
+            const user = checkUser;
+
+            const payload = {
+                userId: user._id,
+                role: user.role,
+                isActive: user.isActive
+            };
+
+            const token = jwt.sign(payload, secret, {
+                expiresIn: remember ? "15d" : "1d",
+            });
+
+            res.status(200).json({
+                payload: {
+                    token
+                },
+            });
+        } else {
+            const newUser = new User({
+                _id: id,
+                username,
+                metadata,
+                isActive: true,
+                role: process.env.DEFAULT_ROLE
+            })
+
+            newUser.save(function (err) {
+                if (err) {
+                    return res.status(500).json({ message: err });
+                }
+
+                const payload = {
+                    userId: id,
+                    role: process.env.DEFAULT_ROLE,
+                    isActive: user.isActive
+                };
+
+                const token = jwt.sign(payload, secret, {
+                    expiresIn: remember ? "15d" : "1d"
+                });
+
+                res.status(200).json({
+                    payload: {
+                        token
+                    }
+                })
+            })
+        }
+    } catch (e) {
+        res.status(400).json({
+            message: "Error: " + e,
+        })
+    }
+})
 
 router.post("/register", async (req, res) => {
     try {
@@ -53,7 +119,7 @@ router.post("/register", async (req, res) => {
         const checkUser = await User.findOne({ username });
 
         if (checkUser) {
-            res.status(400).json({
+            res.status(403).json({
                 message: "Usuario ya registrado",
             });
         } else {
@@ -62,13 +128,7 @@ router.post("/register", async (req, res) => {
                     username,
                     password: hash,
                     metadata,
-                    roles: [
-                        "CHARACTER_ACCESS",
-                        "NPC_ACCESS",
-                        "INITIATIVE_ACCESS",
-                        "ALIGNMENT_ACCESS",
-                        "BESTIARY_ACCESS",
-                    ],
+                    role: process.env.DEFAULT_ROLE,
                 });
 
                 newUser.save(function (err) {
@@ -76,14 +136,127 @@ router.post("/register", async (req, res) => {
                         return res.status(500).json({ message: err });
                     }
 
-                    res.status(200).json({ message: "Usuario creado correctamente" });
+                    mailer.setApiKey(process.env.SENDGRID_KEY);
+
+                    const token = jwt.sign({
+                        _id: newUser._id,
+                        username: username,
+                        password: hash
+                    }, secret, {
+                        expiresIn: "24h",
+                    });
+
+                    const email = {
+                        to: metadata.email,
+                        from: process.env.SENDGRID_EMAIL,
+                        subject: "Activación de cuenta en Lierno App ✔",
+                        html: activateAccountTemplate
+                            .replace("|USERNAME|", username)
+                            .replace("|URL|", `${process.env.CLIENT_URL}activate/${token}`)
+                            .replace("|DATE|", `${new Date().getFullYear()}`)
+                    }
+
+                    mailer.send(email).then(() => {
+                        return res.status(200).json({ message: "Cuenta registrada. Se ha enviado un mail de activación a " + metadata.email });
+                    }).catch((err) => {
+                        return res.status(500).json({ message: "Error en la creación de cuenta: " + err })
+                    })
+
                 });
             });
         }
     } catch (err) {
-        res.status(500).json({ message: err });
+        res.status(400).json({ message: err });
     }
 });
+
+router.post("/activate/:token", async (req, res) => {
+    try {
+        const token = req.params.token;
+
+        jwt.verify(token, secret, function (err, data) {
+            if (!data) {
+                return res.status(500).json({ message: "Token de activación inválido" })
+            }
+
+            User.findByIdAndUpdate(data._id, { isActive: true }, function (err, data) {
+                if (err) {
+                    return res.status(403).json({ message: "No se ha podido activar la cuenta especificada" })
+                }
+
+                return res.status(200).json({ message: "La cuenta ha sido activada correctamente" })
+            });
+        })
+    } catch (err) {
+        res.status(400).json({ message: "Error: " + err })
+    }
+})
+
+router.post("/recover-password/:token?", async (req, res) => {
+    try {
+        const token = req.params.token;
+
+        if (token) {
+            jwt.verify(token, secret, function (err, data) {
+                if (!data) {
+                    return res.status(401).json({ message: "Token inválido." })
+                }
+
+                if (data._id) {
+                    bcrypt.hash(req.body.password, 10, (err, hash) => {
+                        if (err) { return res.status(400).json({ message: "Error: " + err }) }
+
+                        User.findByIdAndUpdate(data._id, { password: hash }, function (err, data) {
+                            if (err) {
+                                return res.status(403).json({ message: "No se ha podido actualizar la contraseña" })
+                            }
+
+                            return res.status(200).json({ message: "Se ha modificado la contraseña." })
+                        })
+                    })
+
+                }
+            })
+        } else {
+            const email = req.body.email;
+
+            if (email) {
+                User.findOne({ "metadata.email": email }, function (err, data) {
+                    if (err) {
+                        return res.status(400).json({ message: "No se ha podido activar la cuenta especificada" })
+                    }
+
+                    mailer.setApiKey(process.env.SENDGRID_KEY);
+
+                    const token = jwt.sign({
+                        _id: data._id,
+                        username: data.username
+                    }, secret, {
+                        expiresIn: "24h"
+                    })
+
+                    const emailToSend = {
+                        to: email,
+                        from: process.env.SENDGRID_EMAIL,
+                        subject: "Recuperación de contraseña ✔",
+                        html: recoverPasswordTemplate
+                            .replace("|USERNAME|", data.username)
+                            .replace("|URL|", `${process.env.CLIENT_URL}recover/${token}`)
+                            .replace("|DATE|", `${new Date().getFullYear()}`)
+                    }
+
+                    mailer.send(emailToSend).then(() => {
+                        return res.status(200).json({ message: "Se te ha enviado un mensaje de recuperación a " + email })
+                    }).catch((err) => {
+                        return res.status(400).json({ message: "Error: " + err })
+                    })
+                });
+            }
+        }
+    } catch (e) {
+        res.status(400).json({ message: e });
+    }
+})
 
 router.get("/me", async (req, res) => {
     try {
@@ -96,12 +269,12 @@ router.get("/me", async (req, res) => {
                 payload: user,
             });
         } else {
-            res.status(500).json({
+            res.status(401).json({
                 message
             })
         }
     } catch (e) {
-        res.status(500).json({
+        res.status(400).json({
             message: "Error: " + e,
         });
     }
@@ -112,15 +285,7 @@ router.post("/players", async (req, res) => {
         const { userIds, dmId } = req.body;
 
         const players = await User.find({ _id: { $in: userIds } });
-        const dm = await User.findById(dmId);
-
         const payload = {
-            dm: {
-                id: dm._id,
-                name: dm.username,
-                avatar: dm.metadata.avatar,
-                metadata: dm.metadata,
-            },
             players: players.map((player) => ({
                 id: player._id,
                 name: player.username,
@@ -129,11 +294,23 @@ router.post("/players", async (req, res) => {
             })),
         };
 
+        if (dmId) {
+            const dm = await User.findById(dmId);
+
+            payload["dm"] = {
+                id: dm._id,
+                name: dm.username,
+                avatar: dm.metadata.avatar,
+                metadata: dm.metadata,
+            }            
+        }
+
+
         res.status(200).json({
             payload,
         });
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e });
+        res.status(400).json({ message: "Error: " + e });
     }
 });
 
@@ -146,13 +323,13 @@ router.post("/me/:id", async (req, res) => {
 
             if (!profile) {
                 res
-                    .status(500)
+                    .status(400)
                     .json({ message: "No se ha enviado un perfil actualizado." });
             }
 
             User.findById(req.params.id, (err, user) => {
                 if (!user) {
-                    return res.status(500).send({
+                    return res.status(404).send({
                         message: "No hay usuario con el ID seleccionado.",
                     });
                 }
@@ -169,16 +346,20 @@ router.post("/me/:id", async (req, res) => {
                 res.json(200).send({ message: "Usuario actualizado." });
             });
         } else {
-            res.status(500).json({
+            res.status(401).json({
                 message
             })
         }
-    } catch (e) { }
+    } catch (e) {
+        res.status(400).json({
+            message: "Error: " + e
+        })
+    }
 });
 
 router.get("/roles", async (req, res) => {
     try {
-        const roles = await User.distinct("roles");
+        const roles = await User.distinct("role");
 
         res.status(200).json({
             payload: roles.filter((role) => role !== "SUPER_ADMIN"),
@@ -204,7 +385,7 @@ router.post("/reset", async (req, res) => {
                 { new: true },
                 (err, user) => {
                     if (err) {
-                        res.status(500).json({ message: "Error: " + err });
+                        res.status(400).json({ message: "Error: " + err });
                     } else {
                         res.json({
                             status: 200,
@@ -214,10 +395,10 @@ router.post("/reset", async (req, res) => {
                 }
             );
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e });
+        res.status(400).json({ message: "Error: " + e });
     }
 });
 
@@ -228,14 +409,14 @@ router.get("/users", async (req, res) => {
 
         if (valid) {
             if (type === 'allUsers') {
-                if (decoded.roles.includes("SUPER_ADMIN")) {
+                if (decoded.role == "SUPER_ADMIN") {
                     const users = await User.find({});
 
                     res.status(200).json({
                         payload: users
                     })
                 } else {
-                    res.status(500).json({
+                    res.status(401).json({
                         message: message
                     })
                 }
@@ -250,12 +431,12 @@ router.get("/users", async (req, res) => {
 
             }
         } else {
-            res.status(500).json({
+            res.status(401).json({
                 message: message
             })
         }
     } catch (error) {
-        res.status(500).json({ message: "Error: " + error });
+        res.status(400).json({ message: "Error: " + error });
     }
 });
 
@@ -265,7 +446,7 @@ router.get("/users/:id", async (req, res) => {
 
         res.status(200).json({ payload: user });
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e })
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 

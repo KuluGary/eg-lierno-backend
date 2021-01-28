@@ -10,7 +10,7 @@ router.get('/races', async (req, res) => {
 
         res.status(200).json({ payload: races });
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e })
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 
@@ -21,7 +21,7 @@ router.get('/race/:id', async (req, res) => {
         res.status(200).json({ payload: race });
 
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e })
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 

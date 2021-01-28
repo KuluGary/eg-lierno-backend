@@ -16,7 +16,7 @@ router.get('/characters', async (req, res) => {
 
             let characters;
 
-            if (decoded.roles.includes("SUPER_ADMIN")) {
+            if (decoded.role === "SUPER_ADMIN") {
                 characters = await Character.find({});
             } else {
                 characters = await Character.find({
@@ -26,10 +26,10 @@ router.get('/characters', async (req, res) => {
 
             res.status(200).json({ payload: characters })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (error) {
-        res.status(500).json({ message: "Error: " + error })
+        res.status(403).json({ message: "Error: " + error })
     }
 })
 
@@ -40,26 +40,26 @@ router.put('/characters/:id', async (req, res) => {
         if (valid) {
             await Character.findByIdAndUpdate(req.params.id, req.body, function (err) {
                 if (err) {
-                    return res.status(500).json({ message: 'El personaje no ha podido ser modificado.' })
+                    return res.status(403).json({ message: 'El personaje no ha podido ser modificado.' })
                 }
                 req.app.io.emit('updatedCharacter', { id: req.params.id })
                 return res.status(200).json({ message: 'Personaje modificado' })
             })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (error) {
-        res.status(500).json({ message: 'Error: ' + error })
+        res.status(400).json({ message: 'Error: ' + error })
     }
 })
 
 router.get('/characters/:id', async (req, res) => {
     try {
-            const character = await Character.findById(req.params.id);
+        const character = await Character.findById(req.params.id);
 
-            res.status(200).json({ payload: character })
+        res.status(200).json({ payload: character })
     } catch (error) {
-        res.status(500).json({ message: 'Error: ' + error })
+        res.status(400).json({ message: 'Error: ' + error })
     }
 })
 
@@ -72,18 +72,41 @@ router.delete('/characters/:id', async (req, res) => {
 
             if (utils.validateOwnership(decoded.userId, character.player)) {
                 await Character.findByIdAndDelete(req.params.id, function (err) {
-                    return res.status(500).json({ message: "Error: " + err })
+                    if (err) return res.status(500).json({ message: "Error: " + err })
+
+                    res.status(200).json({ message: "El personaje ha sido eliminado" })
                 })
 
-                res.status(200).json({ message: "El personaje ha sido eliminado" })
             } else {
-                res.status(500).json({ message: "Discordancia entre usuario y propietario del personaje." })
+                res.status(401).json({ message: "Este personaje no es de tu propiedad.." })
             }
         } else {
-            res.status(500).json({ message });
+            res.status(401).json({ message });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Error: ' + error })
+        res.status(400).json({ message: 'Error: ' + error })
+    }
+})
+
+router.post('/characters', async (req, res) => {
+    try {
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
+            const character = req.body;
+            character["player"] = decoded["userId"];
+            const newCharacter = new Character(character);
+
+            newCharacter.save(function (err) {
+                if (err) { return res.status(403).json({ message: "Error: " + err }) }
+
+                res.status(200).json({ payload: newCharacter._id })
+            })
+        } else {
+            res.status(401).json({ message });
+        }
+    } catch (error) {
+        res.status(400).json({ message: 'Error: ' + error })
     }
 })
 
@@ -157,32 +180,24 @@ router.get('/alignments', async (req, res) => {
 
             res.status(200).json({ payload: alignments })
         } else {
-            res.status(500).json({ message });
+            res.status(401).json({ message });
         }
     } catch (error) {
-        res.status(500).json({ message: "Error: " + error })
+        res.status(400).json({ message: "Error: " + error })
     }
 })
 
 router.post('/characterinfo', async (req, res) => {
     try {
-        const { valid, message } = utils.validateToken(req.headers.authorization);
+        const { characterIds } = req.body;
 
-        if (valid) {
-            const { characterIds } = req.body;
+        const characters = await Character.find({ _id: { $in: characterIds } });
 
-            const characters = await Character.find({ _id: { $in: characterIds } });
+        const payload = { characters }
 
-            const payload = {
-                characters
-            }
-
-            res.status(200).json({ payload })
-        } else {
-            res.status(500).json({ message })
-        }
+        res.status(200).json({ payload })
     } catch (e) {
-        res.status(500).json({ message: "Error: " + error })
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 
@@ -202,10 +217,10 @@ router.post('/usercharacter/', async (req, res) => {
             res.status(200).json({ payload: characters })
 
         } else {
-            res.status(500).json({ message });
+            res.status(401).json({ message });
         }
     } catch (error) {
-        res.status(500).json({ message: "Error: " + error });
+        res.status(400).json({ message: "Error: " + error });
     }
 })
 

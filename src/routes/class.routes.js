@@ -9,7 +9,7 @@ router.get('/classes', async (req, res) => {
         res.status(200).json({ payload: classes })
         
     } catch (error) {
-        res.status(500).json({ message: "Error: " + error })
+        res.status(400).json({ message: "Error: " + error })
     }
 })
 

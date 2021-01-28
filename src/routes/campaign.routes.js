@@ -9,7 +9,7 @@ router.get('/campaigns', async (req, res) => {
         const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
         if (valid) {
-            if (decoded.roles.includes("SUPER_ADMIN")) {
+            if (decoded.roles === "SUPER_ADMIN") {
                 const campaigns = await Campaign.find({});
 
                 return res.status(200).json({ payload: campaigns })
@@ -19,10 +19,10 @@ router.get('/campaigns', async (req, res) => {
 
             res.status(200).json({ payload: campaigns })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (e) {
-        res.status(500).json({ message: "Internal server error: " + e })
+        res.status(400).json({ message: "Internal server error: " + e })
     }
 })
 
@@ -42,10 +42,10 @@ router.post('/campaigns', async (req, res) => {
                 res.status(200).json({ message: "Npc añadido correctamente" })
             })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (err) {
-        res.status(500).json({ message: err })
+        res.status(400).json({ message: err })
     }
 })
 
@@ -58,31 +58,31 @@ router.get('/campaigns/:id', async (req, res) => {
 
             res.status(200).json({ payload: campaign })
         } else {
-            res.status(400).json({ message })
+            res.status(401).json({ message })
         }
 
     } catch (e) {
-        res.status(500).json({ message: "Internal server error" })
+        res.status(400).json({ message: "Internal server error" })
     }
 })
 
 router.put('/campaigns/:id', async (req, res) => {
     try {
         const { valid, message } = utils.validateToken(req.headers.authorization);
-        
+
         if (valid) {
             await Campaign.findByIdAndUpdate(req.params.id, req.body, function (err, npc) {
                 if (err) {
-                    return res.status(500).json({ message: 'La campaña no ha podido ser modificada' })
+                    return res.status(403).json({ message: 'La campaña no ha podido ser modificada' })
                 }
 
                 return res.status(200).json({ message: "Campaña modificada" })
             })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (e) {
-        res.status(500).json({ message: "La campaña no ha podido ser modificada." })
+        res.status(400).json({ message: "La campaña no ha podido ser modificada." })
     }
 })
 
@@ -367,7 +367,9 @@ router.get('/optionalrules', async (req, res) => {
                 ]
             }
         })
-    } catch (e) { }
+    } catch (e) {
+        res.status(400).json({ message: "Error: " + e })
+    }
 })
 
 module.exports = router;

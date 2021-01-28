@@ -9,6 +9,8 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 app.use('/api/v1/auth', require('./routes/user.routes'))
+app.use('/api/v1', require('./routes/faction.routes'))
+app.use('/api/v1', require('./routes/notification.routes'))
 app.use('/api/v1', require('./routes/character.routes'))
 app.use('/api/v1', require('./routes/item.routes'))
 app.use('/api/v1', require('./routes/monster.routes'))

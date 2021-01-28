@@ -12,10 +12,10 @@ router.get('/locations', async (req, res) => {
             const locations = await Location.find({});
             res.status(200).json({ payload: locations })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e })
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 
@@ -28,11 +28,11 @@ router.get('/location/:id', async (req, res) => {
 
             res.status(200).json({ payload: location })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
 
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e })
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 
@@ -45,11 +45,11 @@ router.get('/campaignmap/:id', async (req, res) => {
 
             res.status(200).json({ payload: location })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
 
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e })
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 

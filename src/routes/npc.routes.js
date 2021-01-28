@@ -20,10 +20,10 @@ router.get('/npc', async (req, res) => {
 
             res.status(200).json({ payload: Array.from(new Set(npcs.map(a => a.id))).map(id => npcs.find(a => a.id === id)) })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e })
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 
@@ -34,7 +34,7 @@ router.get('/npc/:id', async (req, res) => {
         res.status(200).json({ payload: npc })
 
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e })
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 
@@ -49,15 +49,15 @@ router.post('/npc', async (req, res) => {
             const newNpc = new Npc(npc);
 
             newNpc.save(function (err) {
-                if (err) { return res.status(500).json({ message: err }) }
+                if (err) { return res.status(403).json({ message: err }) }
 
                 res.status(200).json({ message: "Npc añadido correctamente", value: newNpc._id })
             })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (err) {
-        res.status(500).json({ message: "Error: " + err })
+        res.status(400).json({ message: "Error: " + err })
     }
 })
 
@@ -68,15 +68,15 @@ router.put('/npc', async (req, res) => {
         if (valid) {
             Npc.findByIdAndUpdate(req.body._id, req.body, function (err, npc) {
                 if (err) {
-                    return res.status(500).json({ message: 'Error: ' + err })
+                    return res.status(401).json({ message: 'Error: ' + err })
                 }
                 return res.status(200).json({ message: "Npc modificado" })
             })
         } else {
-            res.status(500).json({ message })
+            res.status(400).json({ message })
         }
     } catch (e) {
-        res.status(500).json({ message: 'Error: ' + e })
+        res.status(400).json({ message: 'Error: ' + e })
     }
 })
 
@@ -89,18 +89,32 @@ router.delete('/npc/:id', async (req, res) => {
 
             if (utils.validateOwnershipt(decoded.userId, npc.player)) {
                 await Npc.findByIdAndDelete(req.params.id, function (err) {
-                    return res.status(500).json({ message: "Error: " + err })
+                    return res.status(403).json({ message: "Error: " + err })
                 })
 
                 res.status(200).json({ message: "El PNJ ha sido eliminado" })
             } else {
-                res.statys(500).json({ message: "Discordancia entre usuario y propietario del PNJ." })
+                res.statys(401).json({ message: "Este PNJ no es de tu propiedad." })
             }
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (error) {
-        res.status(500).json({ message: 'Error: ' + error })
+        res.status(400).json({ message: 'Error: ' + error })
+    }
+})
+
+router.post('/npcinfo', async (req, res) => {
+    try {
+        const { npcIds } = req.body;
+
+        const npcs = await Npc.find({ _id: { $in: npcIds } });
+
+        const payload = { npcs }
+
+        res.status(200).json({ payload })
+    } catch (e) {
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 

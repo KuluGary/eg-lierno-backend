@@ -16,13 +16,18 @@ const userSchema = new Schema({
       trim: true,
       minlength: 6
     },
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: false      
+    },
     metadata: {
       type: Object,
       required: false,
       unique: false      
     },
-    roles: {
-      type: Array,
+    role: {
+      type: String,
       required: true,
       unique: false
     }

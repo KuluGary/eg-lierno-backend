@@ -12,10 +12,10 @@ router.get('/logs/:id', async (req, res) => {
             const log = await Log.find({ "campaignId": req.params.id });
             res.status(200).json({ payload: log })
         } else {
-            res.status(500).json({ message })
+            res.status(401).json({ message })
         }
     } catch (e) {
-        res.status(500).json({ message: "Error: " + e })
+        res.status(400).json({ message: "Error: " + e })
     }
 })
 
@@ -28,15 +28,15 @@ router.post('/logs', async (req, res) => {
             const options = { upsert: true, new: true, setDefaultsOnInsert: true }
 
             Log.findOneAndUpdate({ "discordData.channel.id": log.discordData.channel.id }, req.body, options, function (err) {
-                if (err) { return res.status(500).json({ message: err }) }
+                if (err) { return res.status(403).json({ message: err }) }
 
                 res.status(200).json({ message: "Log añadido correctamente" })
             })
         } else {
-            res.status(500).json({ message });
+            res.status(401).json({ message });
         }
     } catch (err) {
-        res.status(500).json({ message: "Error: " + err })
+        res.status(400).json({ message: "Error: " + err })
     }
 })
 
