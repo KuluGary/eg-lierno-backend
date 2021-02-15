@@ -2,8 +2,18 @@ require('./db');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const { ApolloServer } = require('apollo-server-express');
+const schemas = require('./graphql/schema/schema');
+const resolvers = require('./graphql/resolvers')
+
+const server = new ApolloServer({
+    typeDefs: schemas,
+    resolvers
+})
 
 const app = express();
+
+server.applyMiddleware({ app, path: '/api/v2' })
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));

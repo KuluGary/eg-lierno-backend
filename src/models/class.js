@@ -8,6 +8,15 @@ const ClassSchema = new Schema({
     unique: false,
     trim: false,
     minlength: 3
+  },
+  description: {
+    type: String
+  },
+  icon: {
+    type: String
+  },
+  data: {
+    type: Object
   }
 }, {
   timestamps: true,

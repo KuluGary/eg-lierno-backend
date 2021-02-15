@@ -24,6 +24,11 @@ const itemSchema = new Schema({
         type: String,
         required: false,
         unique: false
+    },
+    properties: {
+      type: Array,
+      required: false,
+      unique: false
     }
   }, {
     timestamps: true,

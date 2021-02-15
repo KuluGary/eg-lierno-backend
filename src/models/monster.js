@@ -19,6 +19,11 @@ const monsterSchema = new Schema({
       required: false,
       unique: false      
     },
+    createdBy: {
+      type: String,
+      required: false,
+      unique: false
+    }
   }, {
     timestamps: true,
   });

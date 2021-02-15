@@ -9,25 +9,6 @@ const CampaignSchema = new Schema({
     trim: false,
     minlength: 3
   },
-  game: {
-    type: String,
-    required: true,
-    unique: false,
-    trim: false,
-    minlength: 3
-  },
-  mode: {
-    type: String,
-    required: false,
-    unique: false,
-    trim: false,
-    minlength: 3
-  },
-  rules: {
-    type: Array,
-    required: false,
-    unique: false
-  },
   players: {
     type: Array,
     required: false,
@@ -48,11 +29,14 @@ const CampaignSchema = new Schema({
     required: true,
     unique: false
   },
-  diary: {
-    type: Array,
+  flavor: {
+    type: Object,
     required: false,
     unique: false
   },
+  discordData: {
+    type: Object
+  }
 }, {
   timestamps: true,
 })
