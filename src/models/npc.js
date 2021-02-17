@@ -19,6 +19,10 @@ const npcSchema = new Schema({
       required: false,
       unique: false      
     },
+    createdBy: {
+      type: String,
+      required: true
+    }
   }, {
     timestamps: true,
   });
