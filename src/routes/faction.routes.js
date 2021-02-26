@@ -6,10 +6,16 @@ let Faction = require("../models/faction");
 
 router.get('/campaigns/factions/:id', async (req, res) => {
     try {
-        const { valid, message } = utils.validateToken(req.headers.authorization);
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
         if (valid) {
-            const factions = await Faction.find({ campaigns: req.params.id });
+            if (decoded.role === "SUPER_ADMIN") {
+                const campaigns = await Campaign.find({});
+
+                return res.status(200).json({ payload: campaigns })
+            }
+
+            const factions = await Faction.find({$and: [{campaigns: req.params.id},{$or: [{unlocked: true},{createdBy: decoded.userId}]}]});
 
             res.status(200).json({ payload: factions })
         } else {

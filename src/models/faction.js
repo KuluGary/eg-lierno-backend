@@ -32,6 +32,14 @@ const factionSchema = new Schema({
         type: Array,
         required: false,
         unique: false
+    },
+    unlocked: {
+        type: Boolean,
+        required: true
+    },
+    createdBy: {
+        type: String,
+        required: true
     }
   }, {
     timestamps: true,

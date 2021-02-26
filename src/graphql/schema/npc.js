@@ -10,7 +10,8 @@ module.exports = gql`
         _id: ID
         name: String
         flavor: NpcFlavor         
-        stats: NpcStats
+        stats: NpcStats,
+        createdBy: String
      }
      type NpcFlavor {
         faction: String

@@ -16,6 +16,9 @@ const CharacterSchema = new Schema({
   stats: {
     type: Object,
     required: true
+  },
+  config: {
+    type: Object
   }
 }, {
   timestamps: true,
