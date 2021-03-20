@@ -7,10 +7,7 @@ const { ApolloServer } = require('apollo-server-express');
 const schemas = require('./graphql/schema/schema');
 const resolvers = require('./graphql/resolvers')
 require('./db');
-
-if (process.env.NODE_ENV === "development") {
-    require('dotenv').config();
-}
+require('dotenv').config();
 
 const server = new ApolloServer({
     typeDefs: schemas,
