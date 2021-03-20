@@ -475,7 +475,11 @@ router.post("/passport/register", (req, res) => {
 
 router.get("/passport/user", (req, res) => {
     console.log(req.user);
-    res.status(200).json({ id: req.user })
+    try {
+        res.status(200).json({ id: req.user })
+    } catch (e) {
+        res.status(500).json({ message: "No hay una sesión de usuario iniciada." })
+    }
 })
 
 router.get("/passport/logout", (req, res) => {
