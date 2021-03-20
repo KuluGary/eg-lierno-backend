@@ -2,23 +2,32 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const LocationSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-    unique: false,
-    trim: false,
-    minlength: 3
+  bounds: {
+    type: Array,
+    required: true
   },
-  desription: {
-    type: String,
-    required: true,
-    unique: false,
-    trim: false,
-    minlength: 3
+  minZoom: {
+    type: Number,
+    required: true
   },
-  coordinates: {
-    type: Object,
-    required: true,
+  maxZoom: {
+    type: Number,
+    required: true
+  },
+  defaultZoom: {
+    type: Number,
+    required: true
+  },
+  center: {
+    type: Array,
+    required: true
+  },
+  background: {
+    type: String
+  },
+  locales: {
+    type: Array,
+    required: true
   }
 }, {
   timestamps: true,

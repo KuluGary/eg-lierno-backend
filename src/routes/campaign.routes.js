@@ -9,7 +9,7 @@ router.get('/campaigns', async (req, res) => {
         const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
         if (valid) {
-            if (decoded.roles === "SUPER_ADMIN") {
+            if (decoded.role === "SUPER_ADMIN") {
                 const campaigns = await Campaign.find({});
 
                 return res.status(200).json({ payload: campaigns })

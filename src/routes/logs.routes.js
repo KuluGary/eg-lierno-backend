@@ -21,9 +21,9 @@ router.get('/logs/:id', async (req, res) => {
 
 router.post('/logs', async (req, res) => {
     try {
-        const { valid, message } = utils.validateToken(req.headers.authorization);
+        // const { valid, message } = utils.validateToken(req.headers.authorization);
 
-        if (valid) {
+        // if (valid) {
             const log = req.body;
             const options = { upsert: true, new: true, setDefaultsOnInsert: true }
 
@@ -32,9 +32,9 @@ router.post('/logs', async (req, res) => {
 
                 res.status(200).json({ message: "Log añadido correctamente" })
             })
-        } else {
-            res.status(401).json({ message });
-        }
+        // } else {
+            // res.status(401).json({ message });
+        // }
     } catch (err) {
         res.status(400).json({ message: "Error: " + err })
     }

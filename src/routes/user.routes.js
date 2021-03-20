@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const secret = process.env.JWT_KEY;
+const passport = require("passport");
+const secret = process.env.SECRET_KEY;
 const bcrypt = require("bcrypt");
 const discordUtils = require("../utils/discord");
 const utils = require('../utils/utils')
@@ -10,6 +11,7 @@ const activateAccountTemplate = require("../utils/email-templates/activate-accou
 const recoverPasswordTemplate = require("../utils/email-templates/recover-password");
 
 let User = require("../models/user");
+// const passport = require("../utils/passport");
 
 router.post("/login", async (req, res) => {
     try {
@@ -302,7 +304,7 @@ router.post("/players", async (req, res) => {
                 name: dm.username,
                 avatar: dm.metadata.avatar,
                 metadata: dm.metadata,
-            }            
+            }
         }
 
 
@@ -448,6 +450,41 @@ router.get("/users/:id", async (req, res) => {
     } catch (e) {
         res.status(400).json({ message: "Error: " + e })
     }
+})
+
+router.post("/passport/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+        if (err) throw err;
+        if (!user) res.status(400).json({
+            message: "Nombre de usuario o contraseña incorrectos",
+        });
+        else {
+            req.logIn(user, err => {
+                if (err) throw err;
+                res.status(200).json({
+                    user: user
+                })
+            })
+        }
+    })(req, res, next)
+})
+
+router.post("/passport/register", (req, res) => {
+    console.log(req.body, req.headers);
+})
+
+router.get("/passport/user", (req, res) => {
+    console.log(req.user);
+    res.status(200).json({ id: req.user })
+})
+
+router.get("/passport/logout", (req, res) => {
+    req.session.destroy()
+    req.logout()
+
+    res.status(200).json({
+        message: "Sesión finalizada correctamente."
+    })
 })
 
 module.exports = router;

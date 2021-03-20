@@ -41,7 +41,7 @@ router.get('/campaignmap/:id', async (req, res) => {
         const { valid, message } = utils.validateToken(req.headers.authorization);
 
         if (valid) {
-            const location = await Location.find({ "mapStats.hierarchy.parent": req.params.id });
+            const location = await Location.find({ "campaign": req.params.id });
 
             res.status(200).json({ payload: location })
         } else {

@@ -5,10 +5,11 @@ module.exports = gql`
          characters(
              qs: String
          ): [Character]   
-         character(_id: ID): Character
-         getUserCharactersAsDm(_id: ID!): [Character]
+         getCharacter(_id: ID): Character
+         getUserCharactersAsDm(_id: ID): [Character]
          getAllCharacters: [Character]
          getUserCharacters(_id: ID): [Character]
+         getCurrentCharacters(qs: String): [Character]
          getCharactersById(characterIds: [String]): [Character]
      }
      type Character {
@@ -45,7 +46,7 @@ module.exports = gql`
      }
      type CharacterStats {
          aligment: String
-         background: [CharacterBackground]
+         background: CharacterBackground
          race: CharacterRace
          armorClass: Int
          speed: Int
