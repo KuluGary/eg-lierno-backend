@@ -7,7 +7,10 @@ const { ApolloServer } = require('apollo-server-express');
 const schemas = require('./graphql/schema/schema');
 const resolvers = require('./graphql/resolvers')
 require('./db');
-require('dotenv').config();
+
+if (process.env.NODE_ENV === "development") {
+    require('dotenv').config();
+}
 
 const server = new ApolloServer({
     typeDefs: schemas,
@@ -15,17 +18,17 @@ const server = new ApolloServer({
     context: ({ req }) => ({
         getUser: () => req.user
     }),
-    
+
 })
 
 const corsOptions = {
     origin: process.env.CLIENT_URL,
     credentials: true
-} 
+}
 
 const app = express();
 
-app.use(cors(corsOptions));    
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(session({
     secret: process.env.SECRET_KEY,
