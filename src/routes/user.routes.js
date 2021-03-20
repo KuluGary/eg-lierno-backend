@@ -454,13 +454,17 @@ router.get("/users/:id", async (req, res) => {
 
 router.post("/passport/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
-        if (err) throw err;
+        if (err) res.status(500).json({
+            message: err
+        });
         if (!user) res.status(400).json({
             message: "Nombre de usuario o contraseña incorrectos",
         });
         else {
             req.logIn(user, err => {
-                if (err) throw err;
+                if (err) res.status(500).json({
+                    message: err
+                });
                 res.status(200).json({
                     user: user
                 })
