@@ -34,7 +34,8 @@ app.use(session({
     secret: process.env.SECRET_KEY,
     resave: false,
     saveUninitialized: true,
-    proxy: true
+    proxy: true,
+    sameSite: 'none'
 }))
 app.use(cookieParser(process.env.SECRET_KEY));
 app.use(passport.initialize());
