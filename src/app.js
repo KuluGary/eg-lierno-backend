@@ -33,7 +33,8 @@ app.use(express.json({ limit: '50mb' }));
 app.use(session({
     secret: process.env.SECRET_KEY,
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    proxy: true
 }))
 app.use(cookieParser(process.env.SECRET_KEY));
 app.use(passport.initialize());
