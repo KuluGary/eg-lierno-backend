@@ -11,52 +11,37 @@ const activateAccountTemplate = require("../utils/email-templates/activate-accou
 const recoverPasswordTemplate = require("../utils/email-templates/recover-password");
 
 let User = require("../models/user");
-// const passport = require("../utils/passport");
 
 router.post("/login", async (req, res) => {
     try {
-        const { username, password, remember } = req.body;
+        const { username, password } = req.body;
         const user = await User.findOne({ username });
 
         if (user) {
-            bcrypt.compare(password, user.password, (err, result) => {
-                if (result) {
-                    const payload = {
-                        userId: user._id,
-                        role: user.role,
-                        isActive: user.isActive
-                    };
+            bcrypt.compare(password, user.password, (err) => {
+                if (err) return res.status(403).json({ message: "Contraseña incorrecta" });
 
-                    const token = jwt.sign(payload, secret, {
-                        expiresIn: remember ? "15d" : "1d",
-                    });
+                const payload = {
+                    userId: user._id,
+                    role: user.role,
+                    isActive: user.isActive
+                };
 
-                    res.status(200).json({
-                        payload: {
-                            token,
-                        },
-                    });
-                } else {
-                    res.status(403).json({
-                        message: "Contraseña incorrecta",
-                    });
-                }
+                const token = jwt.sign(payload, secret, { expiresIn: "10d" });
+
+                res.status(200).json({ payload: { token } });
             });
         } else {
-            res.status(403).json({
-                message: "Nombre de usuario incorrecto",
-            });
+            res.status(403).json({ message: "Nombre de usuario incorrecto" });
         }
     } catch (e) {
-        res.status(400).json({
-            message: "Error: " + e,
-        });
+        res.status(400).json({ message: "Error: " + e });
     }
 });
 
 router.post("/login/google", async (req, res) => {
     try {
-        const { username, id, remember } = req.body;
+        const { username, id } = req.body;
         const checkUser = await User.findById(id)
 
         if (checkUser) {
@@ -68,15 +53,9 @@ router.post("/login/google", async (req, res) => {
                 isActive: user.isActive
             };
 
-            const token = jwt.sign(payload, secret, {
-                expiresIn: remember ? "15d" : "1d",
-            });
+            const token = jwt.sign(payload, secret, { expiresIn: "15d" });
 
-            res.status(200).json({
-                payload: {
-                    token
-                },
-            });
+            res.status(200).json({ payload: { token } });
         } else {
             const newUser = new User({
                 _id: id,
@@ -87,9 +66,7 @@ router.post("/login/google", async (req, res) => {
             })
 
             newUser.save(function (err) {
-                if (err) {
-                    return res.status(500).json({ message: err });
-                }
+                if (err) return res.status(500).json({ message: err });
 
                 const payload = {
                     userId: id,
@@ -97,21 +74,13 @@ router.post("/login/google", async (req, res) => {
                     isActive: user.isActive
                 };
 
-                const token = jwt.sign(payload, secret, {
-                    expiresIn: remember ? "15d" : "1d"
-                });
+                const token = jwt.sign(payload, secret, { expiresIn: "15d" });
 
-                res.status(200).json({
-                    payload: {
-                        token
-                    }
-                })
+                res.status(200).json({ payload: { token } });
             })
         }
     } catch (e) {
-        res.status(400).json({
-            message: "Error: " + e,
-        })
+        res.status(400).json({ message: "Error: " + e });
     }
 })
 
@@ -120,53 +89,44 @@ router.post("/register", async (req, res) => {
         const { username, password, metadata } = req.body;
         const checkUser = await User.findOne({ username });
 
-        if (checkUser) {
-            res.status(403).json({
-                message: "Usuario ya registrado",
+        if (checkUser) return res.status(403).json({ message: "Usuario ya registrado" });
+
+        bcrypt.hash(password, 10, (err, hash) => {
+            const newUser = new User({
+                username,
+                password: hash,
+                metadata,
+                role: process.env.DEFAULT_ROLE,
             });
-        } else {
-            bcrypt.hash(password, 10, (err, hash) => {
-                const newUser = new User({
-                    username,
-                    password: hash,
-                    metadata,
-                    role: process.env.DEFAULT_ROLE,
+
+            newUser.save(function (err) {
+                if (err) return res.status(500).json({ message: err });
+
+                mailer.setApiKey(process.env.SENDGRID_KEY);
+
+                const token = jwt.sign({
+                    _id: newUser._id,
+                    username: username,
+                    password: hash
+                }, secret, {
+                    expiresIn: "24h",
                 });
 
-                newUser.save(function (err) {
-                    if (err) {
-                        return res.status(500).json({ message: err });
-                    }
+                const email = {
+                    to: metadata.email,
+                    from: process.env.SENDGRID_EMAIL,
+                    subject: "Activación de cuenta en Lierno App ✔",
+                    html: activateAccountTemplate
+                        .replace("|USERNAME|", username)
+                        .replace("|URL|", `${process.env.CLIENT_URL}activate/${token}`)
+                        .replace("|DATE|", `${new Date().getFullYear()}`)
+                }
 
-                    mailer.setApiKey(process.env.SENDGRID_KEY);
-
-                    const token = jwt.sign({
-                        _id: newUser._id,
-                        username: username,
-                        password: hash
-                    }, secret, {
-                        expiresIn: "24h",
-                    });
-
-                    const email = {
-                        to: metadata.email,
-                        from: process.env.SENDGRID_EMAIL,
-                        subject: "Activación de cuenta en Lierno App ✔",
-                        html: activateAccountTemplate
-                            .replace("|USERNAME|", username)
-                            .replace("|URL|", `${process.env.CLIENT_URL}activate/${token}`)
-                            .replace("|DATE|", `${new Date().getFullYear()}`)
-                    }
-
-                    mailer.send(email).then(() => {
-                        return res.status(200).json({ message: "Cuenta registrada. Se ha enviado un mail de activación a " + metadata.email });
-                    }).catch((err) => {
-                        return res.status(500).json({ message: "Error en la creación de cuenta: " + err })
-                    })
-
-                });
+                mailer.send(email)
+                    .then(() => res.status(200).json({ message: "Cuenta registrada. Se ha enviado un mail de activación a " + metadata.email }))
+                    .catch((err) => res.status(500).json({ message: "Error en la creación de cuenta: " + err }))
             });
-        }
+        });
     } catch (err) {
         res.status(400).json({ message: err });
     }
@@ -177,16 +137,12 @@ router.post("/activate/:token", async (req, res) => {
         const token = req.params.token;
 
         jwt.verify(token, secret, function (err, data) {
-            if (!data) {
-                return res.status(500).json({ message: "Token de activación inválido" })
-            }
+            if (!data) return res.status(500).json({ message: "Token de activación inválido" })
 
             User.findByIdAndUpdate(data._id, { isActive: true }, function (err, data) {
-                if (err) {
-                    return res.status(403).json({ message: "No se ha podido activar la cuenta especificada" })
-                }
+                if (err) return res.status(403).json({ message: "No se ha podido activar la cuenta especificada" })
 
-                return res.status(200).json({ message: "La cuenta ha sido activada correctamente" })
+                res.status(200).json({ message: "La cuenta ha sido activada correctamente" })
             });
         })
     } catch (err) {
@@ -199,21 +155,17 @@ router.post("/recover-password/:token?", async (req, res) => {
         const token = req.params.token;
 
         if (token) {
-            jwt.verify(token, secret, function (err, data) {
-                if (!data) {
-                    return res.status(401).json({ message: "Token inválido." })
-                }
+            jwt.verify(token, secret, (err) => {
+                if (err) return res.status(401).json({ message: "Token inválido." })
 
                 if (data._id) {
                     bcrypt.hash(req.body.password, 10, (err, hash) => {
-                        if (err) { return res.status(400).json({ message: "Error: " + err }) }
+                        if (err) return res.status(400).json({ message: "Error: " + err });
 
-                        User.findByIdAndUpdate(data._id, { password: hash }, function (err, data) {
-                            if (err) {
-                                return res.status(403).json({ message: "No se ha podido actualizar la contraseña" })
-                            }
+                        User.findByIdAndUpdate(data._id, { password: hash }, (err) => {
+                            if (err) return res.status(403).json({ message: "No se ha podido actualizar la contraseña" });
 
-                            return res.status(200).json({ message: "Se ha modificado la contraseña." })
+                            res.status(200).json({ message: "Se ha modificado la contraseña." });
                         })
                     })
 
@@ -223,10 +175,8 @@ router.post("/recover-password/:token?", async (req, res) => {
             const email = req.body.email;
 
             if (email) {
-                User.findOne({ "metadata.email": email }, function (err, data) {
-                    if (err) {
-                        return res.status(400).json({ message: "No se ha podido activar la cuenta especificada" })
-                    }
+                User.findOne({ "metadata.email": email }, (err, data) => {
+                    if (err) return res.status(400).json({ message: "No se ha podido activar la cuenta especificada" });
 
                     mailer.setApiKey(process.env.SENDGRID_KEY);
 
@@ -247,11 +197,9 @@ router.post("/recover-password/:token?", async (req, res) => {
                             .replace("|DATE|", `${new Date().getFullYear()}`)
                     }
 
-                    mailer.send(emailToSend).then(() => {
-                        return res.status(200).json({ message: "Se te ha enviado un mensaje de recuperación a " + email })
-                    }).catch((err) => {
-                        return res.status(400).json({ message: "Error: " + err })
-                    })
+                    mailer.send(emailToSend)
+                        .then(() => res.status(200).json({ message: "Se te ha enviado un mensaje de recuperación a " + email }))
+                        .catch((err) => res.status(400).json({ message: "Error: " + err }));
                 });
             }
         }

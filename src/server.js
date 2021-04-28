@@ -1,22 +1,17 @@
 const app = require('./app');
-const connection = require('./db');
+const logger = require('./utils/logger');
 const socket = require("socket.io");
 
 const port = process.env.PORT || 3001;
 
-
 const server = app.listen(port, () => {
-    console.log('Server running on port ' + port);
-})
-
-connection.once('open', () => {
-    console.log("DB connected");
+    logger.info(`Server is running at http://192.168.1.51:${port}`)
+    logger.info(`GraphQL playground at http://192.168.1.51:${port}/api/v2/graphql`);
 })
 
 const io = socket(server);
 app.io = io;
 
 io.on('connection', function (socket) {
-    console.log('Socket connected:', socket.client.id);    
+    logger.info('Socket connected:', socket.client.id);    
 });
-
