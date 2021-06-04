@@ -16,7 +16,7 @@ router.get('/npc', async (req, res) => {
             let campaignsDm = (await Campaign.distinct("_id", { dm: decoded.userId }))
                 .map(campaign => campaign.toString());
 
-            let npcs = await Npc.find({ "flavor.campaign": { $elemMatch: { $or: [{ campaignId: { $in: campaigns }, unlocked: true }, { campaignId: { $in: campaignsDm } }] } } })
+            let npcs = await Npc.find({ "flavor.campaign": { $elemMatch: { $or: [{ campaignId: { $in: campaigns }, unlocked: true }, { campaignId: { $in: campaignsDm } }] } } }).sort({ "name": 1 })
 
             res.status(200).json({ payload: Array.from(new Set(npcs.map(a => a.id))).map(id => npcs.find(a => a.id === id)) })
         } else {
@@ -87,14 +87,13 @@ router.delete('/npc/:id', async (req, res) => {
         if (valid) {
             const npc = await Npc.findById(req.params.id);
 
-            if (utils.validateOwnershipt(decoded.userId, npc.player)) {
+            if (utils.validateOwnership(decoded.userId, npc.createdBy)) {
                 await Npc.findByIdAndDelete(req.params.id, function (err) {
-                    return res.status(403).json({ message: "Error: " + err })
+                    if (err) return res.status(403).json({ message: "Error: " + err });
+                    return res.status(200).json({ message: "El PNJ ha sido eliminado" })
                 })
-
-                res.status(200).json({ message: "El PNJ ha sido eliminado" })
             } else {
-                res.statys(401).json({ message: "Este PNJ no es de tu propiedad." })
+                res.status(401).json({ message: "Este PNJ no es de tu propiedad." })
             }
         } else {
             res.status(401).json({ message })
