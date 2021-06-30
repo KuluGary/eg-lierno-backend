@@ -53,6 +53,8 @@ const main = async () => {
         credentials: true,
     };
 
+    console.log(corsOptions);
+
     const multerMiddleware = multer({
         storage: multer.memoryStorage(),
     });
