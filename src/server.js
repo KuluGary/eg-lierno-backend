@@ -33,29 +33,3 @@ mongoose
             logger.info("Socket connected:", socket.client.id);
         });
     });
-
-const exitHandler = () => {
-    if (server) {
-        server.close(() => {
-            logger.info("Server close");
-            process.exit(1);
-        });
-    } else {
-        process.exit(1);
-    }
-};
-
-const unexpectedErrorHandler = (error) => {
-    logger.info(error);
-    exitHandler();
-};
-
-process.on("uncaughtException", unexpectedErrorHandler);
-process.on("unhandledRejection", unexpectedErrorHandler);
-
-process.on("SIGTERM", () => {
-    logger.info("SIGTERM received");
-    if (server) {
-        server.close();
-    }
-});
