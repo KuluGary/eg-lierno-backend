@@ -28,7 +28,7 @@ const main = async () => {
     const redisClient = redis.createClient({
         host: process.env.REDIS_HOSTNAME,
         port: process.env.REDIS_PORT,
-        password: process.env.REDIS_PASSWORD || ""
+        password: process.env.REDIS_PASSWORD || "",
     });
 
     const server = new ApolloServer({
@@ -41,7 +41,7 @@ const main = async () => {
                 ItemResolver,
                 SpellResolver,
                 NpcResolver,
-                MonsterResolver
+                MonsterResolver,
             ],
             validate: false,
         }),
