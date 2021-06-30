@@ -1,52 +1,49 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const utils = require('../utils/utils');
 
-let Item = require('../models/item');
+let Item = require("../models/item");
 
-router.get('/items', async (req, res) => {
+router.get("/items", async (req, res) => {
     try {
         const items = await Item.find({});
 
-        res.status(200).json({ payload: items })
-
+        res.status(200).json({ payload: items });
     } catch (error) {
-        res.status(400).json({ message: "Error: " + error })
+        res.status(400).json({ message: "Error: " + error });
     }
-})
+});
 
-router.post('/items', async (req, res) => {
+router.post("/items", async (req, res) => {
     try {
-            const itemsIds = req.body;
-            const items = await Item.find({ _id: { $in: itemsIds } });
+        const itemsIds = req.body;
+        const items = await Item.find({ _id: { $in: itemsIds } });
 
-            res.status(200).json({ payload: items })
+        res.status(200).json({ payload: items });
     } catch (error) {
-        res.status(400).json({ message: "Error: " + error })
+        res.status(400).json({ message: "Error: " + error });
     }
-})
+});
 
-router.post('/item', async (req, res) => {
+router.post("/item", async (req, res) => {
     try {
-        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
-
-        if (valid) {
+        if (req.session.userId) {
             const item = req.body;
-            item["createdBy"] = decoded["userId"];
+            item["createdBy"] = req.session.userId;
             const newItem = new Item(item);
 
             newItem.save(function (err) {
-                if (err) { return res.status(403).json({ message: "Error: " + err }) }
+                if (err) {
+                    return res.status(403).json({ message: "Error: " + err });
+                }
 
-                res.status(200).json({ payload: newItem._id })
-            })
+                res.status(200).json({ payload: newItem._id });
+            });
         } else {
             res.status(401).json({ message });
         }
     } catch (error) {
-        res.status(400).json({ message: error })
+        res.status(400).json({ message: error });
     }
-})
+});
 
 module.exports = router;
-
