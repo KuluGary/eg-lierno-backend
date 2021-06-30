@@ -1,7 +1,8 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+let User = require("../models/user");
 const secret = process.env.SECRET_KEY;
 
-const validateToken = (authorization) => {
+const validateToken = async (authorization) => {
     if (authorization) {
         const token = authorization.split(" ")[1];
 
@@ -9,26 +10,25 @@ const validateToken = (authorization) => {
             if (!data) {
                 return {
                     valid: false,
-                    message: "Token de autorización inválido"
-                }
+                    message: "Token de autorización inválido",
+                };
             }
 
             return {
                 valid: true,
-                decoded: data
-            }
+                decoded: data,
+            };
         });
-
     } else {
         return {
             valid: false,
-            message: "Tienes que proveer un token de autorización"
-        }
+            message: "Tienes que proveer un token de autorización",
+        };
     }
-}
+};
 
 const validateOwnership = (user, owner) => {
     return user === owner;
-}
+};
 
-module.exports = { validateToken, validateOwnership }
+module.exports = { validateToken, validateOwnership };

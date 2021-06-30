@@ -1,4 +1,4 @@
-const { gql } = require('apollo-server-express');
+const { gql } = require("apollo-server-express");
 
 module.exports = gql`
     extend type Query {
@@ -14,7 +14,7 @@ module.exports = gql`
         school: String
         castingTime: String
         range: String
-        components: SpellComponents
+        components: any
         duration: String
         description: String
     }
@@ -22,4 +22,4 @@ module.exports = gql`
         type: String
         description: String
     }
- `
+`;

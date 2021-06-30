@@ -1,5 +1,5 @@
-const Monster = require("../../models/monster");
-const Controller = require("../../controllers/monster");
+const Monster = require("../../../models/monster");
+const Controller = require("../../../controllers/monster");
 const { ApolloError } = require('apollo-server-express');
 
 module.exports = {

@@ -1,5 +1,5 @@
 
-const characterResolver = require('./character');
+const characterResolver = require('./character_dep');
 const userResolver = require('./user');
 const campaignResolver = require('./campaign');
 const itemResolver = require('./item');
