@@ -1,0 +1,1 @@
+{"version":3,"file":"spell.js","sourceRoot":"","sources":["../../../../../src/graphql/resolvers/deprecated/spell.js"],"names":[],"mappings":"AAAA,MAAM,KAAK,GAAG,OAAO,CAAC,oBAAoB,CAAC,CAAC;AAE5C,MAAM,CAAC,OAAO,GAAG;IACb,YAAY,EAAE,GAAG,EAAE,CAAC,KAAK,CAAC,IAAI,CAAC,EAAG,CAAC;CACtC,CAAA"}
