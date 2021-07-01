@@ -23,7 +23,9 @@ const main = async () => {
     if (process.env.NODE_ENV !== "production") {
         require("dotenv").config();
     }
-
+    
+    app.set("proxy", 1);
+    
     const RedisStore = require("connect-redis")(session);
     const redisClient = redis.createClient({
         host: process.env.REDIS_HOSTNAME,
@@ -34,7 +36,6 @@ const main = async () => {
     redisClient.on("error", (err) => {
         logger.error("Redis error: ", err);
     });
-    app.set("proxy", 1);
 
     const server = new ApolloServer({
         schema: await buildSchema({
@@ -69,7 +70,7 @@ const main = async () => {
             secret: process.env.SECRET_KEY,
             name: "qid",
             resave: false,
-            saveUninitialized: true,
+            saveUninitialized: false,
             store: new RedisStore({
                 client: redisClient,
                 disableTouch: true,
@@ -79,7 +80,7 @@ const main = async () => {
                 maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 yrs
                 httpOnly: true,
                 sameSite: "none",
-                secure: false, // cookie only works in https
+                secure: process.env.NODE_ENV !== "development", // cookie only works in https
             },
         }),
     );
