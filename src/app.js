@@ -29,7 +29,12 @@ const main = async () => {
     const RedisStore = require("connect-redis")(session);
     const redisClient = redis.createClient({
         host: process.env.REDIS_HOSTNAME,
-        port: process.env.REDIS_PORT
+        port: process.env.REDIS_PORT,
+        password: process.env.REDIS_PASSWORD || "",
+    });
+
+    redisClient.on("error", (err) => {
+        logger.error("Redis error: ", err);
     });
 
     const server = new ApolloServer({
