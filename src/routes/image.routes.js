@@ -33,7 +33,9 @@ router.post("/image", async (req, res) => {
             uploadImage(avatar, originalName, "avatar"),
         ]).then((images) => {
             res.status(200).json({ images });
-        });
+        }).catch((err) => {
+            res.status(500).json({ error: "Err: " + err })
+        })
     } catch (e) {
         res.status(500).json({ message: "Error " + e });
     }
