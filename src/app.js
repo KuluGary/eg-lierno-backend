@@ -24,8 +24,8 @@ const main = async () => {
         require("dotenv").config();
     }
     
-    app.set("proxy", 1);
-    
+    app.set("trust proxy", 1);
+
     const RedisStore = require("connect-redis")(session);
     const redisClient = redis.createClient({
         host: process.env.REDIS_HOSTNAME,
