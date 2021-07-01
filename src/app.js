@@ -66,7 +66,10 @@ const main = async () => {
 
     app.use(
         session({
+            secret: process.env.SECRET_KEY,
             name: "qid",
+            resave: false,
+            saveUninitialized: true,
             store: new RedisStore({
                 client: redisClient,
                 disableTouch: true,
@@ -76,11 +79,8 @@ const main = async () => {
                 maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 yrs
                 httpOnly: true,
                 sameSite: "none",
-                secure: process.env.NODE_ENV !== "development", // cookie only works in https
+                secure: false, // cookie only works in https
             },
-            saveUninitialized: false,
-            secret: process.env.SECRET_KEY,
-            resave: false,
         }),
     );
     app.use(express.json({ limit: "50mb" }));
