@@ -4,7 +4,6 @@ require("reflect-metadata");
 const passport = require("passport");
 const redis = require("redis");
 const session = require("express-session");
-const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const { ApolloServer } = require("apollo-server-express");
 const { buildSchema } = require("type-graphql");
@@ -16,6 +15,7 @@ const { SpellResolver } = require("./graphql/resolvers/spell");
 const { ItemResolver } = require("./graphql/resolvers/item");
 const { NpcResolver } = require("./graphql/resolvers/npc");
 const { MonsterResolver } = require("./graphql/resolvers/monster");
+const logger = require("./utils/logger");
 
 let app = express();
 
@@ -29,6 +29,10 @@ const main = async () => {
         host: process.env.REDIS_HOSTNAME,
         port: process.env.REDIS_PORT,
         password: process.env.REDIS_PASSWORD || "",
+    });
+
+    redisClient.on("error", (err) => {
+        logger.error("Redis error: ", err);
     });
     app.set("proxy", 1);
 
@@ -80,7 +84,6 @@ const main = async () => {
         }),
     );
     app.use(express.json({ limit: "50mb" }));
-    app.use(cookieParser(process.env.SECRET_KEY));
     app.use(passport.initialize());
     app.use(passport.session());
     app.use(
