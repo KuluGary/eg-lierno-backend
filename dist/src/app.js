@@ -27,6 +27,7 @@ const main = async () => {
         port: process.env.REDIS_PORT,
         password: process.env.REDIS_PASSWORD || "",
     });
+    app.set("proxy", 1);
     const server = new ApolloServer({
         schema: await buildSchema({
             resolvers: [

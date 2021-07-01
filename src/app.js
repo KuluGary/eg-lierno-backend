@@ -19,7 +19,6 @@ const { MonsterResolver } = require("./graphql/resolvers/monster");
 
 let app = express();
 
-
 const main = async () => {
     if (process.env.NODE_ENV !== "production") {
         require("dotenv").config();
@@ -31,6 +30,7 @@ const main = async () => {
         port: process.env.REDIS_PORT,
         password: process.env.REDIS_PASSWORD || "",
     });
+    app.set("proxy", 1);
 
     const server = new ApolloServer({
         schema: await buildSchema({
