@@ -49,7 +49,6 @@ const main = async () => {
         credentials: true,
     };
     app.use(cors(corsOptions));
-    console.log(corsOptions);
     const multerMiddleware = multer({
         storage: multer.memoryStorage(),
     });
@@ -63,7 +62,7 @@ const main = async () => {
         cookie: {
             maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: "none",
             secure: process.env.NODE_ENV !== "development", // cookie only works in https
         },
         saveUninitialized: false,
