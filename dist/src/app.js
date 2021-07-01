@@ -21,15 +21,13 @@ const main = async () => {
     if (process.env.NODE_ENV !== "production") {
         require("dotenv").config();
     }
-    app.set("trust proxy", 1);
+    else {
+        app.set("trust proxy", 1);
+    }
     const RedisStore = require("connect-redis")(session);
     const redisClient = redis.createClient({
         host: process.env.REDIS_HOSTNAME,
-        port: process.env.REDIS_PORT,
-        password: process.env.REDIS_PASSWORD || "",
-    });
-    redisClient.on("error", (err) => {
-        logger.error("Redis error: ", err);
+        port: process.env.REDIS_PORT
     });
     const server = new ApolloServer({
         schema: await buildSchema({
