@@ -20,10 +20,8 @@ mongoose
         logger.info(`MongoDB connected at ${uri}`);
 
         server = app.listen(port, () => {
-            logger.info(`Server is running at http://192.168.1.51:${port}`);
-            logger.info(
-                `GraphQL playground at http://192.168.1.51:${port}/api/v2/graphql`,
-            );
+            logger.info(`Server is running at ${process.env.SERVER_URL}`);
+            logger.info(`GraphQL playground at ${process.env.SERVER_URL}/v2/graphql`);
         });
 
         const io = socket(server);

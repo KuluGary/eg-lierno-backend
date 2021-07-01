@@ -19,6 +19,7 @@ const { MonsterResolver } = require("./graphql/resolvers/monster");
 
 let app = express();
 
+
 const main = async () => {
     if (process.env.NODE_ENV !== "production") {
         require("dotenv").config();
@@ -50,14 +51,15 @@ const main = async () => {
 
     const corsOptions = {
         origin: process.env.CLIENT_URL,
+        optionsSuccessStatus: 200,
         credentials: true,
     };
-
-    console.log(corsOptions);
 
     const multerMiddleware = multer({
         storage: multer.memoryStorage(),
     });
+    
+    app.use(cors(corsOptions));
 
     app.use(
         session({
@@ -78,7 +80,6 @@ const main = async () => {
             resave: false,
         }),
     );
-    app.use(cors(corsOptions));
     app.use(express.json({ limit: "50mb" }));
     app.use(cookieParser(process.env.SECRET_KEY));
     app.use(passport.initialize());

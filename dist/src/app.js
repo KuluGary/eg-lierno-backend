@@ -25,7 +25,7 @@ const main = async () => {
     const redisClient = redis.createClient({
         host: process.env.REDIS_HOSTNAME,
         port: process.env.REDIS_PORT,
-        password: process.env.REDIS_PASSWORD || ""
+        password: process.env.REDIS_PASSWORD || "",
     });
     const server = new ApolloServer({
         schema: await buildSchema({
@@ -37,7 +37,7 @@ const main = async () => {
                 ItemResolver,
                 SpellResolver,
                 NpcResolver,
-                MonsterResolver
+                MonsterResolver,
             ],
             validate: false,
         }),
@@ -45,11 +45,13 @@ const main = async () => {
     });
     const corsOptions = {
         origin: process.env.CLIENT_URL,
+        optionsSuccessStatus: 200,
         credentials: true,
     };
     const multerMiddleware = multer({
         storage: multer.memoryStorage(),
     });
+    app.use(cors(corsOptions));
     app.use(session({
         name: "qid",
         store: new RedisStore({
@@ -67,7 +69,6 @@ const main = async () => {
         secret: process.env.SECRET_KEY,
         resave: false,
     }));
-    app.use(cors(corsOptions));
     app.use(express.json({ limit: "50mb" }));
     app.use(cookieParser(process.env.SECRET_KEY));
     app.use(passport.initialize());

@@ -16,36 +16,13 @@ mongoose
     const port = process.env.PORT || 3001;
     logger.info(`MongoDB connected at ${uri}`);
     server = app.listen(port, () => {
-        logger.info(`Server is running at http://192.168.1.51:${port}`);
-        logger.info(`GraphQL playground at http://192.168.1.51:${port}/api/v2/graphql`);
+        logger.info(`Server is running at ${process.env.SERVER_URL}`);
+        logger.info(`GraphQL playground at ${process.env.SERVER_URL}/v2/graphql`);
     });
     const io = socket(server);
     app.io = io;
     io.on("connection", function (socket) {
         logger.info("Socket connected:", socket.client.id);
     });
-});
-const exitHandler = () => {
-    if (server) {
-        server.close(() => {
-            logger.info("Server close");
-            process.exit(1);
-        });
-    }
-    else {
-        process.exit(1);
-    }
-};
-const unexpectedErrorHandler = (error) => {
-    logger.info(error);
-    exitHandler();
-};
-process.on("uncaughtException", unexpectedErrorHandler);
-process.on("unhandledRejection", unexpectedErrorHandler);
-process.on("SIGTERM", () => {
-    logger.info("SIGTERM received");
-    if (server) {
-        server.close();
-    }
 });
 //# sourceMappingURL=server.js.map
