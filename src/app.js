@@ -54,12 +54,14 @@ const main = async () => {
         optionsSuccessStatus: 200,
         credentials: true,
     };
+    app.use(cors(corsOptions));
+
+    console.log(corsOptions);
 
     const multerMiddleware = multer({
         storage: multer.memoryStorage(),
     });
     
-    app.use(cors(corsOptions));
 
     app.use(
         session({
