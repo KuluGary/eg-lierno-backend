@@ -7,8 +7,7 @@ router.post("/image", async (req, res) => {
         console.log(original, crop);
         original = original[0];
         crop = crop[0];
-        const { originalName } = original;
-        console.log(originalName);
+        const originalName = original.originalName || original.originalname || "";
         const token = await imageHelper.createToken(crop.buffer);
         const avatar = await imageHelper.getSmallImage(crop.buffer);
         console.log(token, avatar);
