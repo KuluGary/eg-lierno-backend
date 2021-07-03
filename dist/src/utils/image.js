@@ -21,6 +21,7 @@ module.exports = {
                         input: templateFile,
                     },
                 ])
+                    .png()
                     .toBuffer()
                     .then((data) => resolve(data))
                     .catch((err) => reject(err));

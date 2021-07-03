@@ -6,8 +6,6 @@ router.post("/image", async (req, res) => {
     try {
         let { original, crop } = req.files;
 
-        console.log(original, crop);
-
         original = original[0];
         crop = crop[0];
 
@@ -15,8 +13,6 @@ router.post("/image", async (req, res) => {
 
         const token = await imageHelper.createToken(crop.buffer);
         const avatar = await imageHelper.getSmallImage(crop.buffer);
-
-        console.log(token, avatar);
 
         const uploadImage = (image, title = "test", type) => {
             return new Promise((resolve, reject) => {
@@ -29,7 +25,6 @@ router.post("/image", async (req, res) => {
                 )
                     .then(({ link }) => resolve({ type, link }))
                     .catch((err) => {
-                        console.log(err);
                         reject(err);
                     });
             });

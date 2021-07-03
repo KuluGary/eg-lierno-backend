@@ -4,13 +4,11 @@ const imageHelper = require("../utils/image");
 router.post("/image", async (req, res) => {
     try {
         let { original, crop } = req.files;
-        console.log(original, crop);
         original = original[0];
         crop = crop[0];
         const originalName = original.originalName || original.originalname || "";
         const token = await imageHelper.createToken(crop.buffer);
         const avatar = await imageHelper.getSmallImage(crop.buffer);
-        console.log(token, avatar);
         const uploadImage = (image, title = "test", type) => {
             return new Promise((resolve, reject) => {
                 imgurUploader(image, {
@@ -18,7 +16,6 @@ router.post("/image", async (req, res) => {
                 }, process.env.IMGUR_CLIENT_ID)
                     .then(({ link }) => resolve({ type, link }))
                     .catch((err) => {
-                    console.log(err);
                     reject(err);
                 });
             });

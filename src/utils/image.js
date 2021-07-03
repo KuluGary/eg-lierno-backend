@@ -13,7 +13,7 @@ module.exports = {
             const templateFile = (
                 await axios({ url: template, responseType: "arraybuffer" })
             ).data;
-
+            
             return new Promise((resolve, reject) => {
                 axios({ url: mask });
                 sharp(buffer)
@@ -27,6 +27,7 @@ module.exports = {
                             input: templateFile,
                         },
                     ])
+                    .png()
                     .toBuffer()
                     .then((data) => resolve(data))
                     .catch((err) => reject(err));
