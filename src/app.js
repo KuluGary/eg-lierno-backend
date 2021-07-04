@@ -22,9 +22,9 @@ let app = express();
 const main = async () => {
     if (process.env.NODE_ENV !== "production") {
         require("dotenv").config();
-    } else {        
-        app.set("trust proxy", 1);
     }
+
+    app.set("trust proxy", 1);
         
     const RedisStore = require("connect-redis")(session);
     const redisClient = redis.createClient({
@@ -59,6 +59,7 @@ const main = async () => {
         optionsSuccessStatus: 200,
         credentials: true,
     };
+    
     app.use(cors(corsOptions));
 
     const multerMiddleware = multer({
@@ -67,8 +68,8 @@ const main = async () => {
 
     app.use(
         session({
-            secret: process.env.SECRET_KEY,
             name: "qid",
+            secret: process.env.SECRET_KEY,
             resave: false,
             saveUninitialized: false,
             store: new RedisStore({
@@ -79,7 +80,7 @@ const main = async () => {
             cookie: {
                 maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 yrs
                 httpOnly: true,
-                sameSite: "none",
+                sameSite: false,
                 secure: process.env.NODE_ENV !== "development", // cookie only works in https
             },
         }),
