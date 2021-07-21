@@ -20,25 +20,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NpcResolver = void 0;
 const npc_1 = __importDefault(require("../../models/npc"));
+const user_1 = __importDefault(require("../../models/user"));
 const type_graphql_1 = require("type-graphql");
 const npc_2 = require("../schema/npc");
-// module.exports = {
-//     getAllNpcs: () => Npc.find({ }),
-//     getNpcsById: (_, { npcIds }) => {
-//         try {
-//             return Npc.find({ "_id": { $in: npcIds } });
-//         } catch (error) {
-//             throw new ApolloError(`Error al recuperar los personajes.`)
-//         }
-//     },
-//     getPublicNpcs: () => {
-//         try {
-//             return Controller.getPublicNpc()
-//         } catch(e)  {
-//             throw new ApolloError(`Error al recuperar los personajes.`)
-//         }
-//     }
-// }
 let NpcResolver = class NpcResolver {
     async get_npcs_by_id({ req }, npcIds) {
         if (!req.session.userId) {
@@ -49,6 +33,22 @@ let NpcResolver = class NpcResolver {
         const npcs = await npc_1.default.find({ _id: { $in: npcIds } });
         return { npcs };
     }
+    async get_favorite_npcs({ req }) {
+        var _a, _b;
+        if (!req.session.userId) {
+            return {
+                errors: [{ field: "login", error: "No está logueado" }],
+            };
+        }
+        const user = await user_1.default.findById(req.session.userId);
+        if ((_a = user.favorites) === null || _a === void 0 ? void 0 : _a.npcs) {
+            const npcs = await npc_1.default.find({ _id: { $in: (_b = user.favorites) === null || _b === void 0 ? void 0 : _b.npcs } });
+            return { npcs };
+        }
+        else {
+            return { npcs: [] };
+        }
+    }
 };
 __decorate([
     type_graphql_1.Query(() => npc_2.NpcResponse),
@@ -58,6 +58,13 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], NpcResolver.prototype, "get_npcs_by_id", null);
+__decorate([
+    type_graphql_1.Query(() => npc_2.NpcResponse),
+    __param(0, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], NpcResolver.prototype, "get_favorite_npcs", null);
 NpcResolver = __decorate([
     type_graphql_1.Resolver()
 ], NpcResolver);

@@ -9,15 +9,14 @@ router.post("/image", async (req, res) => {
         const originalName = original.originalName || original.originalname || "";
         const token = await imageHelper.createToken(crop.buffer);
         const avatar = await imageHelper.getSmallImage(crop.buffer);
+        console.log(avatar);
         const uploadImage = (image, title = "test", type) => {
             return new Promise((resolve, reject) => {
                 imgurUploader(image, {
                     title: title,
                 }, process.env.IMGUR_CLIENT_ID)
                     .then(({ link }) => resolve({ type, link }))
-                    .catch((err) => {
-                    reject(err);
-                });
+                    .catch((err) => reject(err));
             });
         };
         Promise.all([
@@ -26,6 +25,7 @@ router.post("/image", async (req, res) => {
             uploadImage(avatar, originalName, "avatar"),
         ])
             .then((images) => {
+            console.log(images);
             res.status(200).json({ images });
         })
             .catch((err) => {

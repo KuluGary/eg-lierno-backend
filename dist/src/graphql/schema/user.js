@@ -87,6 +87,19 @@ __decorate([
 UserMetadataInput = __decorate([
     type_graphql_1.InputType()
 ], UserMetadataInput);
+let UserFavorites = class UserFavorites {
+};
+__decorate([
+    type_graphql_1.Field((_) => [String], { nullable: true }),
+    __metadata("design:type", Array)
+], UserFavorites.prototype, "npcs", void 0);
+__decorate([
+    type_graphql_1.Field((_) => [String], { nullable: true }),
+    __metadata("design:type", Array)
+], UserFavorites.prototype, "bestiary", void 0);
+UserFavorites = __decorate([
+    type_graphql_1.ObjectType()
+], UserFavorites);
 let User = class User {
     constructor() {
         this.updatedAt = new Date();
@@ -109,6 +122,10 @@ __decorate([
     type_graphql_1.Field((_) => [String]),
     __metadata("design:type", Array)
 ], User.prototype, "campaigns", void 0);
+__decorate([
+    type_graphql_1.Field((_) => UserFavorites, { nullable: true }),
+    __metadata("design:type", UserFavorites)
+], User.prototype, "favorites", void 0);
 __decorate([
     type_graphql_1.Field((_) => UserMetadata),
     __metadata("design:type", UserMetadata)

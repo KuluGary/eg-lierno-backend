@@ -11,4 +11,16 @@ export declare class NpcResolver {
         npcs: any;
         errors?: undefined;
     }>;
+    get_favorite_npcs({ req }: {
+        req: any;
+    }): Promise<{
+        errors: {
+            field: string;
+            error: string;
+        }[];
+        npcs?: undefined;
+    } | {
+        npcs: any;
+        errors?: undefined;
+    }>;
 }

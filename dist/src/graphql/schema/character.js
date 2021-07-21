@@ -32,10 +32,6 @@ let Traits = class Traits {
 __decorate([
     type_graphql_1.Field(),
     __metadata("design:type", String)
-], Traits.prototype, "name", void 0);
-__decorate([
-    type_graphql_1.Field(),
-    __metadata("design:type", String)
 ], Traits.prototype, "gender", void 0);
 __decorate([
     type_graphql_1.Field(),
@@ -109,11 +105,11 @@ CharacterBackground = __decorate([
 let CharacterRace = class CharacterRace {
 };
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], CharacterRace.prototype, "name", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], CharacterRace.prototype, "description", void 0);
 __decorate([
@@ -126,11 +122,11 @@ CharacterRace = __decorate([
 let Subrace = class Subrace {
 };
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], Subrace.prototype, "name", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], Subrace.prototype, "description", void 0);
 Subrace = __decorate([
@@ -506,45 +502,52 @@ __decorate([
     __metadata("design:type", String)
 ], CharacterFlavor.prototype, "faction", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => Traits, { nullable: true }),
     __metadata("design:type", Traits)
 ], CharacterFlavor.prototype, "traits", void 0);
+__decorate([
+    type_graphql_1.Field(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], CharacterFlavor.prototype, "description", void 0);
 __decorate([
     type_graphql_1.Field(() => [CharacterPersonality]),
     __metadata("design:type", Array)
 ], CharacterFlavor.prototype, "personality", void 0);
 __decorate([
-    type_graphql_1.Field(() => CharacterPortrait),
+    type_graphql_1.Field(() => CharacterPortrait, { nullable: true }),
     __metadata("design:type", CharacterPortrait)
 ], CharacterFlavor.prototype, "portrait", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], CharacterFlavor.prototype, "psychologicalDescription", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], CharacterFlavor.prototype, "physicalDescription", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], CharacterFlavor.prototype, "backstory", void 0);
+__decorate([
+    type_graphql_1.Field(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], CharacterFlavor.prototype, "class", void 0);
 CharacterFlavor = __decorate([
     type_graphql_1.ObjectType()
 ], CharacterFlavor);
 let CharacterStats = class CharacterStats {
 };
 __decorate([
-    type_graphql_1.Field(),
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], CharacterStats.prototype, "aligment", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => CharacterBackground, { nullable: true }),
     __metadata("design:type", CharacterBackground)
 ], CharacterStats.prototype, "background", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field(() => CharacterRace, { nullable: true }),
     __metadata("design:type", CharacterRace)
 ], CharacterStats.prototype, "race", void 0);
 __decorate([
@@ -620,7 +623,7 @@ __decorate([
     __metadata("design:type", Array)
 ], CharacterStats.prototype, "savingThrows", void 0);
 __decorate([
-    type_graphql_1.Field(() => [CharacterClasses]),
+    type_graphql_1.Field(() => [CharacterClasses], { nullable: true }),
     __metadata("design:type", Array)
 ], CharacterStats.prototype, "classes", void 0);
 __decorate([
@@ -648,6 +651,14 @@ __decorate([
     type_graphql_1.Field(),
     __metadata("design:type", CharacterStats)
 ], Character.prototype, "stats", void 0);
+__decorate([
+    type_graphql_1.Field(),
+    __metadata("design:type", String)
+], Character.prototype, "name", void 0);
+__decorate([
+    type_graphql_1.Field(),
+    __metadata("design:type", String)
+], Character.prototype, "type", void 0);
 Character = __decorate([
     type_graphql_1.ObjectType()
 ], Character);

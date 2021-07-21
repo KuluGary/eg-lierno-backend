@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Campaign = require("../models/campaign");
+const utils = require("../utils/utils");
 
 router.get("/campaigns", async (req, res) => {
     try {
@@ -12,15 +13,12 @@ router.get("/campaigns", async (req, res) => {
             }
 
             const campaigns = await Campaign.find({
-                $or: [
-                    { players: { $all: [req.session.userId] } },
-                    { dm: req.session.userId },
-                ],
+                $or: [{ players: { $all: [req.session.userId] } }, { dm: req.session.userId }],
             });
 
             res.status(200).json({ payload: campaigns });
         } else {
-            res.status(401).json({ message });
+            res.status(401).json({ message: "Internal server error" });
         }
     } catch (e) {
         res.status(400).json({ message: "Internal server error: " + e });
@@ -80,9 +78,7 @@ router.put("/campaigns/:id", async (req, res) => {
                             message: "La campaña no ha podido ser modificada",
                         });
 
-                    return res
-                        .status(200)
-                        .json({ message: "Campaña modificada" });
+                    return res.status(200).json({ message: "Campaña modificada" });
                 },
             );
         } else {
@@ -168,8 +164,7 @@ router.get("/optionalrules", async (req, res) => {
                     {
                         name: "Armas de fuego y explosivos",
                         quote: "DMG p267-268",
-                        description:
-                            "Se permite la utilización de armas de fuego y explosivos en la campaña.",
+                        description: "Se permite la utilización de armas de fuego y explosivos en la campaña.",
                     },
                     {
                         name: "Cobertura",
@@ -346,8 +341,7 @@ router.get("/optionalrules", async (req, res) => {
                             {
                                 name: "Estrés y aflicciones",
                                 quote: "",
-                                description:
-                                    "Lleva la cuenta del bienestar metnal de tus personajes.",
+                                description: "Lleva la cuenta del bienestar metnal de tus personajes.",
                             },
                             {
                                 name: "Condiciones de supervivencia",
@@ -430,6 +424,22 @@ router.get("/optionalrules", async (req, res) => {
         });
     } catch (e) {
         res.status(400).json({ message: "Error: " + e });
+    }
+});
+
+router.get("/discord/campaigns", async (req, res) => {
+    try {
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid && decoded.role == "SUPER_ADMIN") {
+            const campaigns = await Campaign.find({});
+
+            return res.status(200).json({ payload: campaigns });
+        } else {
+            res.status(401).json({ message });
+        }
+    } catch (e) {
+        res.status(400).json({ message: "Internal server error: " + e });
     }
 });
 

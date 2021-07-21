@@ -40,10 +40,11 @@ module.exports = {
         try {
             return new Promise((resolve, reject) => {
                 sharp(buffer)
-                .resize({ width: token_size })
-                .toBuffer()
-                .then((data) => resolve(data))
-                .catch((err) => reject(err));
+                  .resize({ width: token_size })
+                  .png()
+                  .toBuffer()
+                  .then((data) => resolve(data))
+                  .catch((err) => reject(err));
             });
         } catch (e) {
             console.error(e)

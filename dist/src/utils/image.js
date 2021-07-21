@@ -36,6 +36,7 @@ module.exports = {
             return new Promise((resolve, reject) => {
                 sharp(buffer)
                     .resize({ width: token_size })
+                    .png()
                     .toBuffer()
                     .then((data) => resolve(data))
                     .catch((err) => reject(err));

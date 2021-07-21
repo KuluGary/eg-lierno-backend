@@ -1,8 +1,7 @@
 const jwt = require("jsonwebtoken");
-let User = require("../models/user");
 const secret = process.env.SECRET_KEY;
 
-const validateToken = async (authorization) => {
+const validateToken = (authorization) => {
     if (authorization) {
         const token = authorization.split(" ")[1];
 

@@ -1,468 +1,477 @@
 import { Field, ID, ObjectType } from "type-graphql";
 import { ObjectId } from "mongodb";
+import { NpcFlavor, NpcStats } from "./npc";
 
 @ObjectType()
 export class CharacterError {
-    @Field()
-    field: string;
-    @Field()
-    error: string;
+  @Field()
+  field: string;
+  @Field()
+  error: string;
 }
 
 @ObjectType()
 class Traits {
-    @Field()
-    name: String;
+  @Field()
+  gender: String;
 
-    @Field()
-    gender: String;
+  @Field()
+  pronoun: String;
 
-    @Field()
-    pronoun: String;
+  @Field()
+  age: String;
 
-    @Field()
-    age: String;
+  @Field()
+  eyes: String;
 
-    @Field()
-    eyes: String;
+  @Field()
+  weight: String;
 
-    @Field()
-    weight: String;
+  @Field()
+  hair: String;
 
-    @Field()
-    hair: String;
+  @Field()
+  skin: String;
 
-    @Field()
-    skin: String;
-
-    @Field()
-    height: String;
+  @Field()
+  height: String;
 }
 
 @ObjectType()
 class CharacterPersonality {
-    @Field()
-    personalityTraits: String;
+  @Field()
+  personalityTraits: String;
 
-    @Field()
-    ideals: String;
+  @Field()
+  ideals: String;
 
-    @Field()
-    bonds: String;
+  @Field()
+  bonds: String;
 
-    @Field()
-    flaws: String;
+  @Field()
+  flaws: String;
 }
 
 @ObjectType()
 class CharacterBackground {
-    @Field(() => String, { nullable: true })
-    name: String;
+  @Field(() => String, { nullable: true })
+  name: String;
 
-    @Field(() => String, { nullable: true })
-    description: String;
+  @Field(() => String, { nullable: true })
+  description: String;
 
-    @Field(() => String, { nullable: true })
-    trait: String;
+  @Field(() => String, { nullable: true })
+  trait: String;
 }
 
 @ObjectType()
 class CharacterRace {
-    @Field()
-    name: String;
+  @Field(() => String, { nullable: true })
+  name: String;
 
-    @Field()
-    description: String;
+  @Field(() => String, { nullable: true })
+  description: String;
 
-    @Field(() => [Subrace])
-    subrace: [Subrace];
+  @Field(() => [Subrace])
+  subrace: [Subrace];
 }
 
 @ObjectType()
 class Subrace {
-    @Field()
-    name: String;
+  @Field(() => String, { nullable: true })
+  name: String;
 
-    @Field()
-    description: String;
+  @Field(() => String, { nullable: true })
+  description: String;
 }
 
 @ObjectType()
 class CharacterAbilityScores {
-    @Field()
-    strength: Number;
+  @Field()
+  strength: Number;
 
-    @Field()
-    dexterity: Number;
+  @Field()
+  dexterity: Number;
 
-    @Field()
-    constitution: Number;
+  @Field()
+  constitution: Number;
 
-    @Field()
-    intelligence: Number;
+  @Field()
+  intelligence: Number;
 
-    @Field()
-    wisdom: Number;
+  @Field()
+  wisdom: Number;
 
-    @Field()
-    charisma: Number;
+  @Field()
+  charisma: Number;
 }
 
 @ObjectType()
 class CharacterSkills {
-    @Field(() => [CharacterSkill])
-    acrobatics: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  acrobatics: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    animal_handling: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  animal_handling: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    arcana: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  arcana: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    athletics: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  athletics: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    deception: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  deception: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    history: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  history: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    insight: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  insight: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    intimidation: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  intimidation: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    investigation: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  investigation: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    medicine: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  medicine: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    nature: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  nature: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    perception: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  perception: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    performance: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  performance: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    persuasion: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  persuasion: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    religion: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  religion: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    sleight_of_hand: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  sleight_of_hand: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    stealth: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  stealth: [CharacterSkill];
 
-    @Field(() => [CharacterSkill])
-    survival: [CharacterSkill];
+  @Field(() => [CharacterSkill])
+  survival: [CharacterSkill];
 }
 
 @ObjectType()
 class CharacterSkill {
-    @Field()
-    name: String;
+  @Field()
+  name: String;
 
-    @Field()
-    modifier: String;
+  @Field()
+  modifier: String;
 
-    @Field()
-    proficient: Boolean;
+  @Field()
+  proficient: Boolean;
 
-    @Field()
-    expertise: Boolean;
+  @Field()
+  expertise: Boolean;
 
-    @Field()
-    description: String;
+  @Field()
+  description: String;
 }
 
 @ObjectType()
 class CharacterHitpoints {
-    @Field()
-    hp_current: Number;
+  @Field()
+  hp_current: Number;
 
-    @Field()
-    hp_max: Number;
+  @Field()
+  hp_max: Number;
 }
 
 @ObjectType()
 class CharacterAction {
-    @Field()
-    name: String;
+  @Field()
+  name: String;
 
-    @Field()
-    description: String;
+  @Field()
+  description: String;
 }
 
 @ObjectType()
 class CharacterAttack {
-    @Field()
-    name: String;
+  @Field()
+  name: String;
 
-    @Field()
-    proficient: Boolean;
+  @Field()
+  proficient: Boolean;
 
-    @Field(() => [CharacterAttackData])
-    data: [CharacterAttackData];
+  @Field(() => [CharacterAttackData])
+  data: [CharacterAttackData];
 }
 
 @ObjectType()
 class CharacterAttackData {
-    @Field(() => [CharacterAttackDamage])
-    damage: [CharacterAttackDamage];
+  @Field(() => [CharacterAttackDamage])
+  damage: [CharacterAttackDamage];
 
-    @Field(() => [String])
-    properties: [String];
+  @Field(() => [String])
+  properties: [String];
 
-    @Field()
-    type: String;
+  @Field()
+  type: String;
 
-    @Field()
-    range: String;
+  @Field()
+  range: String;
 }
 
 @ObjectType()
 class CharacterAttackDamage {
-    @Field()
-    die: String;
+  @Field()
+  die: String;
 
-    @Field()
-    type: String;
+  @Field()
+  type: String;
 
-    @Field()
-    properties: String;
+  @Field()
+  properties: String;
 }
 
 @ObjectType()
 class CharacterEquipment {
-    @Field(() => [CharacterItems])
-    items: [CharacterItems];
+  @Field(() => [CharacterItems])
+  items: [CharacterItems];
 
-    @Field(() => [CharacterItems])
-    armor: [CharacterItems];
+  @Field(() => [CharacterItems])
+  armor: [CharacterItems];
 
-    @Field(() => [CharacterItems])
-    magicItems: [CharacterItems];
+  @Field(() => [CharacterItems])
+  magicItems: [CharacterItems];
 
-    @Field(() => [CharacterItems])
-    weapons: [CharacterItems];
+  @Field(() => [CharacterItems])
+  weapons: [CharacterItems];
 
-    @Field(() => [CharacterItems])
-    vehicles: [CharacterItems];
+  @Field(() => [CharacterItems])
+  vehicles: [CharacterItems];
 
-    @Field()
-    rations: Number;
+  @Field()
+  rations: Number;
 
-    @Field()
-    waterskin: Number;
+  @Field()
+  waterskin: Number;
 }
 
 @ObjectType()
 class CharacterItems {
-    @Field((_) => ID)
-    id: String;
+  @Field((_) => ID)
+  id: String;
 
-    @Field()
-    equipped: Boolean;
+  @Field()
+  equipped: Boolean;
 
-    @Field()
-    quantity: Number;
+  @Field()
+  quantity: Number;
 }
 
 @ObjectType()
 class CharacterSavingThrow {
-    @Field()
-    proficient: Boolean;
+  @Field()
+  proficient: Boolean;
 
-    @Field()
-    expertise: Boolean;
+  @Field()
+  expertise: Boolean;
 }
 
 @ObjectType()
 class CharacterSavingThrows {
-    @Field()
-    strength: CharacterSavingThrow;
+  @Field()
+  strength: CharacterSavingThrow;
 
-    @Field()
-    dexterity: CharacterSavingThrow;
+  @Field()
+  dexterity: CharacterSavingThrow;
 
-    @Field()
-    constitution: CharacterSavingThrow;
+  @Field()
+  constitution: CharacterSavingThrow;
 
-    @Field()
-    intelligence: CharacterSavingThrow;
+  @Field()
+  intelligence: CharacterSavingThrow;
 
-    @Field()
-    wisdom: CharacterSavingThrow;
+  @Field()
+  wisdom: CharacterSavingThrow;
 
-    @Field()
-    charisma: CharacterSavingThrow;
+  @Field()
+  charisma: CharacterSavingThrow;
 }
 
 @ObjectType()
 class CharacterClasses {
-    @Field()
-    className: String;
+  @Field()
+  className: String;
 
-    @Field()
-    subclassName: String;
+  @Field()
+  subclassName: String;
 
-    @Field()
-    classLevel: Number;
+  @Field()
+  classLevel: Number;
 
-    @Field()
-    hitDie: Number;
+  @Field()
+  hitDie: Number;
 
-    @Field((_) => ID)
-    classId: String;
+  @Field((_) => ID)
+  classId: String;
 
-    @Field()
-    subclassDescription: String;
+  @Field()
+  subclassDescription: String;
 }
 
 @ObjectType()
 class CharacterSpells {
-    @Field()
-    spellId: String;
+  @Field()
+  spellId: String;
 
-    @Field()
-    prepared: Boolean;
+  @Field()
+  prepared: Boolean;
 }
 
 @ObjectType()
 class CharacterPortrait {
-    @Field(() => String, { nullable: true })
-    avatar?: String;
-    @Field(() => String, { nullable: true })
-    token?: String;
-    @Field()
-    original: String;
+  @Field(() => String, { nullable: true })
+  avatar?: String;
+  @Field(() => String, { nullable: true })
+  token?: String;
+  @Field()
+  original: String;
 }
 
 @ObjectType()
 class CharacterFlavor {
-    @Field()
-    faction: String;
+  @Field()
+  faction: String;
 
-    @Field()
-    traits: Traits;
+  @Field(() => Traits, { nullable: true })
+  traits: Traits;
 
-    @Field(() => [CharacterPersonality])
-    personality: [CharacterPersonality];
+  @Field(() => String, { nullable: true })
+  description: String;
 
-    @Field(() => CharacterPortrait)
-    portrait: CharacterPortrait;
+  @Field(() => [CharacterPersonality])
+  personality: [CharacterPersonality];
 
-    @Field()
-    psychologicalDescription: String;
+  @Field(() => CharacterPortrait, { nullable: true })
+  portrait: CharacterPortrait;
 
-    @Field()
-    physicalDescription: String;
+  @Field(() => String, { nullable: true })
+  psychologicalDescription: String;
 
-    @Field()
-    backstory: String;
+  @Field(() => String, { nullable: true })
+  physicalDescription: String;
+
+  @Field(() => String, { nullable: true })
+  backstory: String;
+
+  @Field(() => String, { nullable: true })
+  class: String;
 }
 
 @ObjectType()
 class CharacterStats {
-    @Field()
-    @Field()
-    aligment: String;
+  @Field(() => String, { nullable: true })
+  aligment: String;
 
-    @Field()
-    background: CharacterBackground;
+  @Field(() => CharacterBackground, { nullable: true })
+  background: CharacterBackground;
 
-    @Field()
-    race: CharacterRace;
+  @Field(() => CharacterRace, { nullable: true })
+  race: CharacterRace;
 
-    @Field()
-    armorClass: Number;
+  @Field()
+  armorClass: Number;
 
-    @Field()
-    speed: Number;
+  @Field()
+  speed: Number;
 
-    @Field(() => [CharacterAbilityScores])
-    abilityScores: [CharacterAbilityScores];
+  @Field(() => [CharacterAbilityScores])
+  abilityScores: [CharacterAbilityScores];
 
-    @Field()
-    proficiencyBonus: Number;
+  @Field()
+  proficiencyBonus: Number;
 
-    @Field(() => [CharacterSkills])
-    skills: [CharacterSkills];
+  @Field(() => [CharacterSkills])
+  skills: [CharacterSkills];
 
-    @Field(() => [CharacterHitpoints])
-    hitPoints: [CharacterHitpoints];
+  @Field(() => [CharacterHitpoints])
+  hitPoints: [CharacterHitpoints];
 
-    @Field()
-    initiativeBonus: Number;
+  @Field()
+  initiativeBonus: Number;
 
-    @Field()
-    passivePerception: Number;
+  @Field()
+  passivePerception: Number;
 
-    @Field()
-    experience: Number;
+  @Field()
+  experience: Number;
 
-    @Field(() => [CharacterAction])
-    actions: [CharacterAction];
+  @Field(() => [CharacterAction])
+  actions: [CharacterAction];
 
-    @Field(() => [CharacterAction])
-    bonusActions: [CharacterAction];
+  @Field(() => [CharacterAction])
+  bonusActions: [CharacterAction];
 
-    @Field(() => [CharacterAttack])
-    attacks: [CharacterAttack];
+  @Field(() => [CharacterAttack])
+  attacks: [CharacterAttack];
 
-    @Field(() => [CharacterAction])
-    additionalAbilities: [CharacterAction];
+  @Field(() => [CharacterAction])
+  additionalAbilities: [CharacterAction];
 
-    @Field(() => [CharacterAction])
-    reactions: [CharacterAction];
+  @Field(() => [CharacterAction])
+  reactions: [CharacterAction];
 
-    @Field(() => [CharacterSpells])
-    spells: [CharacterSpells];
+  @Field(() => [CharacterSpells])
+  spells: [CharacterSpells];
 
-    @Field(() => [CharacterEquipment])
-    equipment: [CharacterEquipment];
+  @Field(() => [CharacterEquipment])
+  equipment: [CharacterEquipment];
 
-    @Field()
-    proficiencies: String;
+  @Field()
+  proficiencies: String;
 
-    @Field(() => [CharacterSavingThrows])
-    savingThrows: [CharacterSavingThrows];
+  @Field(() => [CharacterSavingThrows])
+  savingThrows: [CharacterSavingThrows];  
 
-    @Field(() => [CharacterClasses])
-    classes: [CharacterClasses];
+  @Field(() => [CharacterClasses], { nullable: true })
+  classes: [CharacterClasses];
 
-    @Field()
-    stress: Number;
+  @Field()
+  stress: Number;
 }
 
 @ObjectType()
 class Character {
-    @Field((_) => ID)
-    _id?: ObjectId;
+  @Field((_) => ID)
+  _id?: ObjectId;
 
-    @Field((_) => ID)
-    player: String;
+  @Field((_) => ID)
+  player: String;
 
-    @Field()
-    flavor: CharacterFlavor;
+  @Field()
+  flavor: CharacterFlavor;
 
-    @Field()
-    stats: CharacterStats;
+  @Field()
+  stats: CharacterStats;
+
+  @Field()
+  name: String;
+
+  @Field()
+  type: String;
 }
 
 @ObjectType()
 export class CharacterResponse {
-    @Field(() => [CharacterError], { nullable: true })
-    errors?: CharacterError[];
+  @Field(() => [CharacterError], { nullable: true })
+  errors?: CharacterError[];
 
-    @Field(() => [Character], { nullable: true })
-    characters?: Character[];
+  @Field(() => [Character], { nullable: true })
+  characters?: Character[];
 }

@@ -34,7 +34,7 @@ declare class NpcAbilityScoreModifiers {
     wisdom: number;
     charisma: number;
 }
-declare class NpcStats {
+export declare class NpcStats {
     size: String;
     race: String;
     alignment: String;
@@ -67,17 +67,22 @@ declare class NpcStats {
     legendaryActionsDescription: String;
     challengeRatingStr: String;
 }
-declare class NpcFlavor {
+declare class NpcPortrait {
+    avatar?: String;
+    token?: String;
+    original: String;
+}
+export declare class NpcFlavor {
     faction: String;
     gender: String;
     pronoun: String;
     environment: String;
     description: String;
     nameIsProper: Boolean;
-    imageUrl: String;
     class: String;
     campaign: [NpcCampaign];
     personality: [NpcPersonality];
+    portrait: NpcPortrait;
 }
 declare class Npc {
     _id: ObjectId;

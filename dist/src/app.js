@@ -28,6 +28,7 @@ const main = async () => {
         port: process.env.REDIS_PORT,
         password: process.env.REDIS_PASSWORD || "",
     });
+    app.redis = redisClient;
     redisClient.on("error", (err) => {
         logger.error("Redis error: ", err);
     });

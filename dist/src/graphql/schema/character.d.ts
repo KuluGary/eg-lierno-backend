@@ -4,7 +4,6 @@ export declare class CharacterError {
     error: string;
 }
 declare class Traits {
-    name: String;
     gender: String;
     pronoun: String;
     age: String;
@@ -139,11 +138,13 @@ declare class CharacterPortrait {
 declare class CharacterFlavor {
     faction: String;
     traits: Traits;
+    description: String;
     personality: [CharacterPersonality];
     portrait: CharacterPortrait;
     psychologicalDescription: String;
     physicalDescription: String;
     backstory: String;
+    class: String;
 }
 declare class CharacterStats {
     aligment: String;
@@ -175,6 +176,8 @@ declare class Character {
     player: String;
     flavor: CharacterFlavor;
     stats: CharacterStats;
+    name: String;
+    type: String;
 }
 export declare class CharacterResponse {
     errors?: CharacterError[];

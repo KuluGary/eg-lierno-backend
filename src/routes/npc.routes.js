@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const utils = require("../utils/utils");
 
 let Npc = require("../models/npc");
 let Campaign = require("../models/campaign");
@@ -131,6 +132,31 @@ router.post("/npcinfo", async (req, res) => {
         res.status(200).json({ payload });
     } catch (e) {
         res.status(400).json({ message: "Error: " + e });
+    }
+});
+
+router.get("/discord/npcs", async (req, res) => {
+    try {
+        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+
+        if (valid) {
+            if (decoded.role == "SUPER_ADMIN") {
+                const npcs = await Npc.find({});
+                res.status(200).json({
+                    payload: npcs,
+                });
+            } else {
+                res.status(401).json({
+                    message: message,
+                });
+            }
+        } else {
+            res.status(401).json({
+                message: message,
+            });
+        }
+    } catch (error) {
+        res.status(400).json({ message: "Error: " + error });
     }
 });
 

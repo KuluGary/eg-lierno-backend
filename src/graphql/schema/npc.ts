@@ -86,7 +86,7 @@ class NpcAbilityScoreModifiers {
 }
 
 @ObjectType()
-class NpcStats {
+export class NpcStats {
     @Field()
     size: String;
 
@@ -182,7 +182,17 @@ class NpcStats {
 }
 
 @ObjectType()
-class NpcFlavor {
+class NpcPortrait {
+  @Field(() => String, { nullable: true })
+  avatar?: String;
+  @Field(() => String, { nullable: true })
+  token?: String;
+  @Field()
+  original: String;
+}
+
+@ObjectType()
+export class NpcFlavor {
     @Field()
     faction: String;
 
@@ -202,9 +212,6 @@ class NpcFlavor {
     nameIsProper: Boolean;
 
     @Field()
-    imageUrl: String;
-
-    @Field()
     class: String;
 
     @Field(() => [NpcCampaign])
@@ -212,6 +219,9 @@ class NpcFlavor {
 
     @Field(() => [NpcPersonality])
     personality: [NpcPersonality];
+
+    @Field(() => NpcPortrait, { nullable: true })
+    portrait: NpcPortrait;
 }
 
 @ObjectType()

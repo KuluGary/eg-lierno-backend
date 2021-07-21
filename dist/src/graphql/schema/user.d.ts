@@ -19,12 +19,17 @@ declare class UserMetadataInput {
     discordId?: String;
     friendList?: [String];
 }
+declare class UserFavorites {
+    npcs: [String];
+    bestiary: [String];
+}
 export declare class User {
     _id?: ObjectId;
     isActive: Boolean;
     username: String;
     password: String;
     campaigns: [String];
+    favorites: UserFavorites;
     metadata: UserMetadata;
     roles: [String];
     role: String;

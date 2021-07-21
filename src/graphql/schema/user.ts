@@ -56,6 +56,15 @@ class UserMetadataInput {
 }
 
 @ObjectType()
+class UserFavorites {
+  @Field((_) => [String], { nullable: true })
+  npcs: [String];
+
+  @Field((_) => [String], { nullable: true })
+  bestiary: [String];
+}
+
+@ObjectType()
 export class User {
   @Field((_) => ID, { nullable: true })
   _id?: ObjectId;
@@ -70,6 +79,9 @@ export class User {
 
   @Field((_) => [String])
   campaigns: [String];
+
+  @Field((_) => UserFavorites, { nullable: true })
+  favorites: UserFavorites;
 
   @Field((_) => UserMetadata)
   metadata: UserMetadata;
