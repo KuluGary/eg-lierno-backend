@@ -27,7 +27,8 @@ router.post("/spells", async (req, res) => {
 
 router.get("/spells", async (req, res) => {
     try {
-        if (req.session.userId) {
+        const { valid, message } = utils.validateToken(req.headers.authorization);
+        if (valid) {
             let spells;
 
             spells = await Spell.find({});

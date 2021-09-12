@@ -20,11 +20,7 @@ const userSchema = new Schema(
     isActive: {
       type: Boolean,
       required: true,
-      default: true,
-    },
-    favorites: {
-      type: Object,
-      required: false,
+      default: false,
     },
     metadata: {
       type: Object,
@@ -35,6 +31,10 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: false,
+    },
+    favorites: {
+      type: Object,
+      required: false,
     },
   },
   {

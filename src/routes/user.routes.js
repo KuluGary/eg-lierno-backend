@@ -6,6 +6,9 @@ const secret = process.env.SECRET_KEY;
 const bcrypt = require("bcrypt");
 const discordUtils = require("../utils/discord");
 const utils = require("../utils/utils");
+const mailer = require("@sendgrid/mail");
+const activateAccountTemplate = require("../utils/email-templates/activate-account");
+const recoverPasswordTemplate = require("../utils/email-templates/recover-password");
 
 let User = require("../models/user");
 
@@ -88,7 +91,7 @@ router.post("/register", async (req, res) => {
 
     if (checkUser) return res.status(403).json({ message: "Usuario ya registrado" });
 
-    bcrypt.hash(password, 10, (_, hash) => {
+    bcrypt.hash(password, 10, (err, hash) => {
       const newUser = new User({
         username,
         password: hash,
@@ -99,7 +102,38 @@ router.post("/register", async (req, res) => {
       newUser.save(function (err) {
         if (err) return res.status(500).json({ message: err });
 
-        res.status(500).json({ message: "Error en la creación de cuenta: " + err });
+        mailer.setApiKey(process.env.SENDGRID_KEY);
+
+        const token = jwt.sign(
+          {
+            _id: newUser._id,
+            username: username,
+            password: hash,
+          },
+          secret,
+          {
+            expiresIn: "24h",
+          },
+        );
+
+        const email = {
+          to: metadata.email,
+          from: process.env.SENDGRID_EMAIL,
+          subject: "Activación de cuenta en Lierno App ✔",
+          html: activateAccountTemplate
+            .replace("|USERNAME|", username)
+            .replace("|URL|", `${process.env.CLIENT_URL}activate/${token}`)
+            .replace("|DATE|", `${new Date().getFullYear()}`),
+        };
+
+        mailer
+          .send(email)
+          .then(() =>
+            res
+              .status(200)
+              .json({ message: "Cuenta registrada. Se ha enviado un mail de activación a " + metadata.email }),
+          )
+          .catch((err) => res.status(500).json({ message: "Error en la creación de cuenta: " + err }));
       });
     });
   } catch (err) {
@@ -111,10 +145,10 @@ router.post("/activate/:token", async (req, res) => {
   try {
     const token = req.params.token;
 
-    jwt.verify(token, secret, function (_, data) {
+    jwt.verify(token, secret, function (err, data) {
       if (!data) return res.status(500).json({ message: "Token de activación inválido" });
 
-      User.findByIdAndUpdate(data._id, { isActive: true }, function (err) {
+      User.findByIdAndUpdate(data._id, { isActive: true }, function (err, data) {
         if (err) return res.status(403).json({ message: "No se ha podido activar la cuenta especificada" });
 
         res.status(200).json({ message: "La cuenta ha sido activada correctamente" });
@@ -130,7 +164,7 @@ router.post("/recover-password/:token?", async (req, res) => {
     const token = req.params.token;
 
     if (token) {
-      jwt.verify(token, secret, (err, data) => {
+      jwt.verify(token, secret, (err) => {
         if (err) return res.status(401).json({ message: "Token inválido." });
 
         if (data._id) {
@@ -152,6 +186,8 @@ router.post("/recover-password/:token?", async (req, res) => {
         User.findOne({ "metadata.email": email }, (err, data) => {
           if (err) return res.status(400).json({ message: "No se ha podido activar la cuenta especificada" });
 
+          mailer.setApiKey(process.env.SENDGRID_KEY);
+
           const token = jwt.sign(
             {
               _id: data._id,
@@ -163,7 +199,20 @@ router.post("/recover-password/:token?", async (req, res) => {
             },
           );
 
-          return res.status(200).json({ url: `recover/${token}` });
+          const emailToSend = {
+            to: email,
+            from: process.env.SENDGRID_EMAIL,
+            subject: "Recuperación de contraseña ✔",
+            html: recoverPasswordTemplate
+              .replace("|USERNAME|", data.username)
+              .replace("|URL|", `${process.env.CLIENT_URL}recover/${token}`)
+              .replace("|DATE|", `${new Date().getFullYear()}`),
+          };
+
+          mailer
+            .send(emailToSend)
+            .then(() => res.status(200).json({ message: "Se te ha enviado un mensaje de recuperación a " + email }))
+            .catch((err) => res.status(400).json({ message: "Error: " + err }));
         });
       }
     }
@@ -362,18 +411,19 @@ router.get("/users/:id", async (req, res) => {
 
 router.post("/favorite/:mode/:type/:id", async (req, res) => {
   try {
-    if (req.session.userId) {
+    const { decoded } = utils.validateToken(req.headers.authorization);
+    if (decoded.userId) {
       const { mode, type, id } = req.params;
       const query = `favorites.${type}`;
 
       if (mode === "add") {
-        await User.updateOne({ _id: req.session.userId }, { $addToSet: { [query]: id } }, null, (err) => {
+        await User.updateOne({ _id: decoded.userId }, { $addToSet: { [query]: id } }, null, (err) => {
           if (err) return res.status(400).json({ message: "Error: " + e });
 
           return res.status(200).json({ message: "Npc añadido a favoritos" });
         });
       } else if (mode === "remove") {
-        await User.updateOne({ _id: req.session.userId }, { $pull: { [query]: id } }, null, (err, data) => {
+        await User.updateOne({ _id: decoded.userId }, { $pull: { [query]: id } }, null, (err, data) => {
           if (err) return res.status(400).json({ message: "Error: " + err });
 
           return res.status(200).json({ message: "Npc eliminado de favoritos correctamente." });
@@ -416,6 +466,7 @@ router.post("/passport/register", (req, res) => {
 });
 
 router.get("/passport/user", (req, res) => {
+  console.log(req.user);
   try {
     res.status(200).json({ id: req.user });
   } catch (e) {
