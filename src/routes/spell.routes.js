@@ -27,7 +27,7 @@ router.post('/spells', async (req, res) => {
 
 router.get('/spells', async (req, res) => {
     try {
-        const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+        const { valid, message } = utils.validateToken(req.headers.authorization);
         if (valid) {
             let spells;
             

@@ -1,17 +1,28 @@
-const app = require('./app');
-const logger = require('./utils/logger');
+const app = require("./app");
+const logger = require("./utils/logger");
+const mongoose = require("mongoose");
 const socket = require("socket.io");
+let server;
 
 const port = process.env.PORT || 3001;
+const db_name = process.env.NODE_ENV === "test" ? "test-lierno" : "lierno";
+const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/" + db_name;
 
-const server = app.listen(port, () => {
-    logger.info(`Server is running at http://192.168.1.51:${port}`)
-    logger.info(`GraphQL playground at http://192.168.1.51:${port}/api/v2/graphql`);
-})
+mongoose
+  .connect(uri, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  })
+  .then(() => {
+    logger.info(`MongoDB connected at ${uri}`);
+    server = app.listen(port, () => logger.info(`Server is running at ${process.env.SERVER_URL}`));
 
-const io = socket(server);
-app.io = io;
+    const io = socket(server);
+    app.io = io;
 
-io.on('connection', function (socket) {
-    logger.info('Socket connected:', socket.client.id);    
-});
+    io.on("connection", (socket) => logger.info(`Socket connected: ${socket.client.id}`));
+  });
+
+module.exports = mongoose.connection;
