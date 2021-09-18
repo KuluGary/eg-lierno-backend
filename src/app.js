@@ -3,6 +3,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 
+const app = express();
 if (process.env.NODE_ENV === "development") {
   require("dotenv").config();
 }
@@ -11,10 +12,6 @@ const corsOptions = {
   origin: process.env.CLIENT_URL,
   credentials: true,
 };
-
-    redisClient.on("error", (err) => {
-        logger.error("Redis error: ", err);
-    });
 
 app.use(cors(corsOptions));
 
