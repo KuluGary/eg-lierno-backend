@@ -4,46 +4,48 @@ const router = express.Router();
 let Item = require("../models/item");
 
 router.get("/items", async (req, res) => {
-    try {
-        const items = await Item.find({});
+  try {
+    const items = await Item.find({});
 
-        res.status(200).json({ payload: items });
-    } catch (error) {
-        res.status(400).json({ message: "Error: " + error });
-    }
+    res.status(200).json({ payload: items });
+  } catch (error) {
+    res.status(400).json({ message: "Error: " + error });
+  }
 });
 
 router.post("/items", async (req, res) => {
-    try {
-        const itemsIds = req.body;
-        const items = await Item.find({ _id: { $in: itemsIds } });
+  try {
+    const itemsIds = req.body;
+    const items = await Item.find({ _id: { $in: itemsIds } });
 
-        res.status(200).json({ payload: items });
-    } catch (error) {
-        res.status(400).json({ message: "Error: " + error });
-    }
+    res.status(200).json({ payload: items });
+  } catch (error) {
+    res.status(400).json({ message: "Error: " + error });
+  }
 });
 
 router.post("/item", async (req, res) => {
-    try {
-        if (req.session.userId) {
-            const item = req.body;
-            item["createdBy"] = req.session.userId;
-            const newItem = new Item(item);
+  try {
+    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
-            newItem.save(function (err) {
-                if (err) {
-                    return res.status(403).json({ message: "Error: " + err });
-                }
+    if (valid) {
+      const item = req.body;
+      item["createdBy"] = decoded["userId"];
+      const newItem = new Item(item);
 
-                res.status(200).json({ payload: newItem._id });
-            });
-        } else {
-            res.status(401).json({ message });
+      newItem.save(function (err) {
+        if (err) {
+          return res.status(403).json({ message: "Error: " + err });
         }
-    } catch (error) {
-        res.status(400).json({ message: error });
+
+        res.status(200).json({ payload: newItem._id });
+      });
+    } else {
+      res.status(401).json({ message });
     }
+  } catch (error) {
+    res.status(400).json({ message: error });
+  }
 });
 
 module.exports = router;
