@@ -12,7 +12,7 @@ router.get("/npc", async (req, res) => {
 
     if (valid) {
       let campaigns = (await Campaign.distinct("_id", { players: decoded.userId })).map((campaign) =>
-        campaign.toString(),
+        campaign.toString()
       );
 
       let campaignsDm = (await Campaign.distinct("_id", { dm: decoded.userId })).map((campaign) => campaign.toString());
@@ -144,6 +144,41 @@ router.post("/npcinfo", async (req, res) => {
     const payload = { npcs };
 
     res.status(200).json({ payload });
+  } catch (e) {
+    res.status(400).json({ message: "Error: " + e });
+  }
+});
+
+router.get("/npcs", async (req, res) => {
+  try {
+    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+
+    if (valid) {
+      const npcs = await Npc.find(
+        { createdBy: decoded["userId"] },
+        { name: 1, "flavor.personality": 1, "flavor.portrait.avatar": 1 }
+      );
+
+      res.status(200).json({ payload: npcs });
+    } else {
+      res.status(401).json({ message });
+    }
+  } catch (e) {
+    res.status(400).json({ message: "Error: " + e });
+  }
+});
+
+router.get("/campaigns/:id/npcs", async (req, res) => {
+  try {
+    const { valid, message } = utils.validateToken(req.headers.authorization);
+
+    if (valid) {
+      const npcs = await Npc.find({ "flavor.campaign": { $elemMatch: { campaignId: req.params.id } } });
+
+      res.status(200).json({ payload: npcs });
+    } else {
+      res.status(401).json({ message });
+    }
   } catch (e) {
     res.status(400).json({ message: "Error: " + e });
   }

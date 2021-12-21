@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const utils = require("../utils/utils");
 
 let Item = require("../models/item");
 
-router.get("/items", async (req, res) => {
+router.get("/items", async (_, res) => {
   try {
     const items = await Item.find({});
 
