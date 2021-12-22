@@ -6,7 +6,8 @@
   "scripts": {
     "watch": "tsc -w",
     "redis": "wsl sudo service redis-server start",
-    "start": "cross-env NODE_ENV=development nodemon ./src/server.js",
+    "start": "node ./src/server.js",
+    "start-two": "cross-env NODE_ENV=development nodemon ./src/server.js",
     "client": "npm run start --prefix ../client",
     "client-electron": "npm run dev --prefix ../client",
     "bot": "concurrently \"npm run start\" \"npm run start --prefix ../bot\" ",
