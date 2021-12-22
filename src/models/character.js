@@ -3,12 +3,24 @@ const { Schema } = mongoose;
 
 const CharacterSchema = new Schema(
   {
+    player: {
+      type: String,
+      required: true,
+      unique: false,
+      trim: false,
+      minlength: 3,
+    },
     name: {
       type: String,
       required: true,
       unique: false,
       trim: false,
       minglength: 3,
+    },
+    type: {
+      type: String,
+      required: true,
+      unique: false,
     },
     flavor: {
       type: Object,
@@ -20,13 +32,6 @@ const CharacterSchema = new Schema(
     },
     config: {
       type: Object,
-    },
-    createdBy: {
-      type: String,
-      required: true,
-      unique: false,
-      trim: false,
-      minlength: 3,
     },
   },
   {

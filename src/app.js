@@ -14,13 +14,13 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(cookieParser(process.env.SECRET_KEY));
 
 const multerMiddleware = multer({
   storage: multer.memoryStorage(),
 });
 
 app.use(express.json({ limit: "50mb" }));
+app.use(cookieParser(process.env.SECRET_KEY));
 app.use(
   multerMiddleware.fields([
     { name: "original", maxCount: 1 },

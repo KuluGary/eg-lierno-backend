@@ -118,20 +118,4 @@ router.post("/monsterinfo", async (req, res) => {
   }
 });
 
-router.get("/campaigns/:id/monsters", async (req, res) => {
-  try {
-    const { valid, message } = utils.validateToken(req.headers.authorization);
-
-    if (valid) {
-      const monsters = await Monster.find({ "flavor.campaign": { $elemMatch: { campaignId: req.params.id } } });
-
-      res.status(200).json({ payload: monsters });
-    } else {
-      res.status(401).json({ message });
-    }
-  } catch (e) {
-    res.status(400).json({ message: "Error: " + e });
-  }
-});
-
 module.exports = router;
