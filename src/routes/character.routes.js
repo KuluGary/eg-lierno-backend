@@ -285,7 +285,7 @@ router.get("/characters/sheet/pdf/:id", async (req, res) => {
 
         form.getTextField("Text10.0").setText(character["name"]);
         form.getTextField("Text10.1.0").setText(character["name"]);
-        form.getTextField("Text2.0.1").setText(character.flavor.background.name ?? "");
+        form.getTextField("Text2.0.1").setText(character.flavor.background.name || "");
         form.getTextField("Text2.1.0").setText(character.stats.race.name);
         form.getTextField("Text2.1.1").setText(character.flavor.alignment);
 
@@ -507,7 +507,7 @@ router.get("/characters/sheet/pdf/:id", async (req, res) => {
 
           form.getTextField(`Text1.${index + (index === 0 ? ".0" : "")}`).setText(calculateToHitBonusStr(attack));
 
-          const damages = (Object.values(attack.data.damage ?? {}) || [])
+          const damages = (Object.values(attack.data.damage || {}) || [])
             .map((damage) => calculateDamageBonusStr(damage, attack))
             .join(", ");
 
