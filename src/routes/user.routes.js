@@ -18,8 +18,8 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ username });
 
     if (user) {
-      bcrypt.compare(password, user.password, (err) => {
-        if (err) return res.status(403).json({ message: "Contraseña incorrecta" });
+      bcrypt.compare(password, user.password, (err, result) => {
+        if (!result || err) return res.status(403).json({ message: "Contraseña incorrecta" });
 
         const payload = {
           userId: user._id,
@@ -29,7 +29,35 @@ router.post("/login", async (req, res) => {
 
         const token = jwt.sign(payload, secret, { expiresIn: "10d" });
 
-        res.status(200).json({ payload: { token } });
+        res
+          .status(200)
+          .cookie("token", token, {
+            sameSite: "Lax",
+            secure: process.env.NODE_ENV !== "development",
+            httpOnly: true,
+          })
+          .json({ payload: { token } });
+      });
+    } else {
+      res.status(403).json({ message: "Nombre de usuario incorrecto" });
+    }
+  } catch (e) {
+    res.status(400).json({ message: "Error: " + e });
+  }
+});
+
+router.post("/signin", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+
+    if (user) {
+      bcrypt.compare(password, user.password, (err, result) => {
+        if (!result || err) return res.status(403).json({ message: "Contraseña incorrecta" });
+
+        res
+          .status(200)
+          .json({ name: user.username, image: user.metadata.avatar, email: user.metadata.email, id: user._id });
       });
     } else {
       res.status(403).json({ message: "Nombre de usuario incorrecto" });
@@ -113,7 +141,7 @@ router.post("/register", async (req, res) => {
           secret,
           {
             expiresIn: "24h",
-          },
+          }
         );
 
         const email = {
@@ -131,7 +159,7 @@ router.post("/register", async (req, res) => {
           .then(() =>
             res
               .status(200)
-              .json({ message: "Cuenta registrada. Se ha enviado un mail de activación a " + metadata.email }),
+              .json({ message: "Cuenta registrada. Se ha enviado un mail de activación a " + metadata.email })
           )
           .catch((err) => res.status(500).json({ message: "Error en la creación de cuenta: " + err }));
       });
@@ -196,7 +224,7 @@ router.post("/recover-password/:token?", async (req, res) => {
             secret,
             {
               expiresIn: "24h",
-            },
+            }
           );
 
           const emailToSend = {
@@ -352,7 +380,7 @@ router.post("/reset", async (req, res) => {
               message: "Usuario " + email + " actualizado correctamente.",
             });
           }
-        },
+        }
       );
     } else {
       res.status(401).json({ message });
