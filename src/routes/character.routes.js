@@ -24,7 +24,7 @@ router.get("/characters", async (req, res) => {
       } else {
         characters = await Character.find(
           { createdBy: decoded.userId },
-          { name: 1, "flavor.personality": 1, "flavor.portrait.avatar": 1 }
+          { name: 1, "flavor.personality": 1, "flavor.portrait.avatar": 1, "createdBy": 1}
         );
       }
 

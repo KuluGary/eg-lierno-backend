@@ -20,87 +20,81 @@ router.post("/characters/like", async (req, res) => {
   }
 });
 
-// router.get("/update-npc", async (req, res) => {
-//   try {
-//     const npcs = await Npc.find({});
+router.get("/update-npc", async (req, res) => {
+  try {
+    const npcs = await Npc.find({});
 
-//     npcs.forEach((npc) => {
-//       npc.flavor.traits = {
-//         gender: npc.flavor.gender ?? "",
-//         pronoun: npc.flavor.pronoun ?? "El",
-//         nameIsProper: npc.flavor.nameIsProper ?? true,
-//       };
+    npcs.forEach((npc) => {
+      npc.stats.equipment = {
+        items: [],
+        armor: [],
+        magicItems: [],
+        magicWeapons: [],
+        weapons: [],
+        vehicles: [],
+      };
+      //       npc.flavor.traits = {
+      //         gender: npc.flavor.gender ?? "",
+      //         pronoun: npc.flavor.pronoun ?? "El",
+      //         nameIsProper: npc.flavor.nameIsProper ?? true,
+      //       };
+      //       npc.stats.hitDie = { num: parseInt(npc.stats.numHitDie ?? 0), size: parseInt(npc.stats.hitDieSize) };
+      //       npc.stats.equipment = { items: npc.stats.items };
+      //       // Parsing int
+      //       npc.stats.armorClass = parseInt(npc.stats.armorClass);
+      //       npc.stats.challengeRating = parseInt(npc.stats.challengeRating);
+      //       npc.stats.proficiencyBonus = parseInt(npc.stats.proficiencyBonus);
+      //       Object.entries(npc.stats.abilityScores ?? {}).forEach(
+      //         ([key, value]) => (npc.stats.abilityScores[key] = parseInt(value))
+      //       );
+      //       // Renaming
+      //       npc.flavor.appearance = npc.flavor.personality.physical ?? "";
+      //       npc.flavor.backstory = npc.flavor.personality.backstory ?? "";
+      //       npc.flavor.personality = npc.flavor.personality.personalityTrait1 ?? npc.flavor.personality.personality ?? "";
+      //       npc.flavor.alignment = npc.stats.alignment ?? "";
+      //       npc.stats.hitPoints = { current: npc.stats.hitPoints, max: npc.stats.hitPoints };
+      //       npc.stats.race = { name: npc.stats.race ?? "", size: npc.stats.size ?? "" };
+      //       npc.stats.speed = { land: parseInt(npc.stats.speed.replace(/\D/g, "")) };
+      //       const skills = {};
+      //       const savingThrows = {};
+      //       npc.stats.skills.forEach((skill) => {
+      //         const { id, proficient, expertise, modifier } = skill;
+      //         skills[id] = { proficient, expertise, modifier };
+      //       });
+      //       npc.stats.skills = skills;
+      //       npc.stats.savingThrows.forEach((savingThrow) => {
+      //         const { ability, proficient } = savingThrow;
+      //         savingThrows[ability] = { proficient };
+      //       });
+      //       npc.stats.savingThrows = savingThrows;
+      //       // Deleting
+      //       delete npc.flavor.gender;
+      //       delete npc.flavor.pronoun;
+      //       delete npc.flavor.owner;
+      //       delete npc.flavor.nameIsProper;
+      //       delete npc.stats.size;
+      //       delete npc.stats.items;
+      //       delete npc.stats.hitDieSize;
+      //       delete npc.stats.numHitDie;
+      //       delete npc.stats.abilityScoreModifiers;
+      //       delete npc.stats.armorType;
+      //       delete npc.stats.armorTypeStr;
+      //       delete npc.stats.challengeRatingStr;
+      //       delete npc.stats.alignment;
+      //       delete npc.stats.experiencePoints;
+      //       delete npc.stats.extraHealthFromConstitution;
+      //       delete npc.stats.hitPointsStr;
+      //       delete npc.stats.languages;
+      Npc.findByIdAndUpdate(npc._id, npc, function (err) {
+        if (err) return res.status(500).send(err.message);
+      });
+    });
 
-//       npc.stats.hitDie = { num: parseInt(npc.stats.numHitDie ?? 0), size: parseInt(npc.stats.hitDieSize) };
-//       npc.stats.equipment = { items: npc.stats.items };
-
-//       // Parsing int
-//       npc.stats.armorClass = parseInt(npc.stats.armorClass);
-//       npc.stats.challengeRating = parseInt(npc.stats.challengeRating);
-//       npc.stats.proficiencyBonus = parseInt(npc.stats.proficiencyBonus);
-
-//       Object.entries(npc.stats.abilityScores ?? {}).forEach(
-//         ([key, value]) => (npc.stats.abilityScores[key] = parseInt(value))
-//       );
-
-//       // Renaming
-//       npc.flavor.appearance = npc.flavor.personality.physical ?? "";
-//       npc.flavor.backstory = npc.flavor.personality.backstory ?? "";
-//       npc.flavor.personality = npc.flavor.personality.personalityTrait1 ?? npc.flavor.personality.personality ?? "";
-//       npc.flavor.alignment = npc.stats.alignment ?? "";
-//       npc.stats.hitPoints = { current: npc.stats.hitPoints, max: npc.stats.hitPoints };
-//       npc.stats.race = { name: npc.stats.race ?? "", size: npc.stats.size ?? "" };
-//       npc.stats.speed = { land: parseInt(npc.stats.speed.replace(/\D/g, "")) };
-
-//       const skills = {};
-//       const savingThrows = {};
-
-//       npc.stats.skills.forEach((skill) => {
-//         const { id, proficient, expertise, modifier } = skill;
-
-//         skills[id] = { proficient, expertise, modifier };
-//       });
-
-//       npc.stats.skills = skills;
-
-//       npc.stats.savingThrows.forEach((savingThrow) => {
-//         const { ability, proficient } = savingThrow;
-
-//         savingThrows[ability] = { proficient };
-//       });
-
-//       npc.stats.savingThrows = savingThrows;
-
-//       // Deleting
-//       delete npc.flavor.gender;
-//       delete npc.flavor.pronoun;
-//       delete npc.flavor.owner;
-//       delete npc.flavor.nameIsProper;
-
-//       delete npc.stats.size;
-//       delete npc.stats.items;
-//       delete npc.stats.hitDieSize;
-//       delete npc.stats.numHitDie;
-//       delete npc.stats.abilityScoreModifiers;
-//       delete npc.stats.armorType;
-//       delete npc.stats.armorTypeStr;
-//       delete npc.stats.challengeRatingStr;
-//       delete npc.stats.alignment;
-//       delete npc.stats.experiencePoints;
-//       delete npc.stats.extraHealthFromConstitution;
-//       delete npc.stats.hitPointsStr;
-//       delete npc.stats.languages;
-
-//       Npc.findByIdAndUpdate(npc._id, npc, function (err) {
-//         if (err) return res.status(500).send(err.message);
-//       });
-//     });
-
-//     res.status(200).send("Npcs updated");
-//   } catch (e) {
-//     res.status(500).send(e.message);
-//   }
-// });
+    res.status(200).send("Npcs updated");
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
 
 // router.get("/update-character", async (req, res) => {
 //   try {

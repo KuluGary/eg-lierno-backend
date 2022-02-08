@@ -156,7 +156,7 @@ router.get("/npcs", async (req, res) => {
     if (valid) {
       const npcs = await Npc.find(
         { createdBy: decoded["userId"] },
-        { name: 1, "flavor.personality": 1, "flavor.portrait.avatar": 1 }
+        { name: 1, "flavor.personality": 1, "flavor.portrait.avatar": 1, "createdBy": 1 }
       );
 
       res.status(200).json({ payload: npcs });

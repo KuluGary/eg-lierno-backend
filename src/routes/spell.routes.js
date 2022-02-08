@@ -42,6 +42,16 @@ router.get("/spells", async (req, res) => {
   }
 });
 
+router.get("/spell/:id", async (req, res) => {
+  try {
+    const spell = await Spell.findById(req.params.id);
+
+    res.status(200).json({ payload: spell });
+  } catch (e) {
+    res.status(400).json({ message: "Error: " + e });
+  }
+});
+
 router.post("/spell", async (req, res) => {
   try {
     const { valid, decoded, message } = utils.validateToken(req.headers.authorization);

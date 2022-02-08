@@ -14,6 +14,16 @@ router.get("/items", async (_, res) => {
   }
 });
 
+router.get("/item/:id", async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.id);
+
+    res.status(200).json({ payload: item });
+  } catch (error) {
+    res.status(400).json({ message: "Error: " + error });
+  }
+});
+
 router.post("/items", async (req, res) => {
   try {
     const itemsIds = req.body;

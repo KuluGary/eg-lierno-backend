@@ -68,24 +68,14 @@ router.get("/campaigns/:id", async (req, res) => {
 
 router.put("/campaigns/:id", async (req, res) => {
   try {
-    const { valid, message } = utils.validateToken(req.headers.authorization);
+    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
     if (valid) {
-      Campaign.findOneAndUpdate({
-          _id: req.params.id,
-          createdBy: req.session.userId,
-        },
-        req.body,
-        null,
-        function (err) {
-          if (err)
-            return res.status(403).json({
-              message: "La campaña no ha podido ser modificada",
-            });
+      Campaign.findOneAndUpdate({ _id: req.params.id, dm: decoded.userId }, req.body, { upsert: true }, (err) => {
+        if (err) return res.status(403).json({ message: "La campaña no ha podido ser modificada." });
 
-          return res.status(200).json({ message: "Campaña modificada" });
-        },
-      );
+        return res.status(200).json({ message: "Campaña modificada" });
+      });      
     } else {
       res.status(401).json({ message });
     }
