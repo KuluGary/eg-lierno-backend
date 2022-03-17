@@ -1,32 +1,36 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const npcSchema = new Schema({
+const NpcSchema = new Schema(
+  {
     name: {
       type: String,
       required: true,
-      unique: true,
-      trim: true,
-      minlength: 3
+      unique: false,
+      trim: false,
+      minglength: 3,
     },
     flavor: {
       type: Object,
       required: true,
-      unique: false,
     },
     stats: {
       type: Object,
-      required: false,
-      unique: false      
+      required: true,
     },
     createdBy: {
       type: String,
-      required: true
-    }
-  }, {
+      required: true,
+      unique: false,
+      trim: false,
+      minlength: 3,
+    },
+  },
+  {
     timestamps: true,
-  });
+  }
+);
 
-const Npc = mongoose.model('Npc', npcSchema);
+const Npc = mongoose.model("Npc", NpcSchema);
 
 module.exports = Npc;

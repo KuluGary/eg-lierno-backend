@@ -1,137 +1,23 @@
-const express = require("express");
-const router = express.Router();
-const utils = require("../utils/utils");
+const router = require("express").Router();
+const {
+  getBestiary,
+  postBestiary,
+  putBestiary,
+  deleteBestiary,
+  postMonsterInfo,
+  getCampaignMonsters,
+} = require("../controllers/monster");
 
-let Monster = require("../models/monster");
-let User = require("../models/user");
-let Campaign = require("../models/campaign");
+router.get("/bestiary/:id?", getBestiary);
 
-router.get("/bestiary", async (req, res) => {
-  try {
-    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+router.post("/bestiary", postBestiary);
 
-    if (valid) {
-      let campaigns = await User.distinct("campaigns", { _id: decoded.userId });
-      let campaignsDm = (await Campaign.distinct("_id", { dm: decoded.userId })).map((campaign) => campaign.toString());
+router.put("/bestiary", putBestiary);
 
-      const monsters = await Monster.find({
-        "flavor.campaign": {
-          $elemMatch: {
-            $or: [{ campaignId: { $in: campaigns }, unlocked: true }, { campaignId: { $in: campaignsDm } }],
-          },
-        },
-      });
+router.delete("/bestiary/:id", deleteBestiary);
 
-      res.status(200).json({ payload: monsters });
-    } else {
-      res.status(401).json({ message });
-    }
-  } catch (e) {
-    res.status(400).json({ message: "Error: " + e });
-  }
-});
+router.post("/monsterinfo", postMonsterInfo);
 
-router.get("/bestiary/:id", async (req, res) => {
-  try {
-    const monster = await Monster.findById(req.params.id);
-
-    res.status(200).json({ payload: monster });
-  } catch (e) {
-    res.status(400).json({ message: "Error: " + e });
-  }
-});
-
-router.post("/bestiary", async (req, res) => {
-  try {
-    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
-
-    if (valid) {
-      const monster = req.body;
-      monster["createdBy"] = decoded["userId"];
-
-      const newMonster = new Monster(monster);
-
-      newMonster.save(function (err) {
-        if (err) {
-          return res.status(403).json({ message: "Error: " + err });
-        }
-
-        res.status(200).json({ message: "Monstruo añadido correctamente" });
-      });
-    } else {
-      res.status(401).json({ message });
-    }
-  } catch (err) {
-    res.status(400).json({ message: "Error: " + err });
-  }
-});
-
-router.put("/bestiary", async (req, res) => {
-  try {
-    const { valid, message } = utils.validateToken(req.headers.authorization);
-
-    if (valid) {
-      Monster.findByIdAndUpdate(req.body._id, req.body, function (err, monster) {
-        if (err) {
-          return res.status(403).json({ message: "El monstruo no ha podido ser modificado." });
-        }
-
-        return res.status(200).json({ message: "Monstruo modificado" });
-      });
-    } else {
-      res.status(401).json({ message });
-    }
-  } catch (e) {
-    res.status(400).json({ message: "Error: " + e });
-  }
-});
-
-router.delete("/bestiary/:id", async (req, res) => {
-  try {
-    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
-
-    if (valid) {
-      Monster.findOneAndDelete({ _id: req.params.id, createdBy: decoded["userId"] }, function (err) {
-        if (err) return res.status(403).json({ message: "Error " + err });
-
-        return res.status(200).json({ message: "El monstruo ha sido eliminado" });
-      });
-    } else {
-      res.status(401).json({ message });
-    }
-  } catch (error) {
-    res.status(400).send("Error: " + error);
-  }
-});
-
-router.post("/monsterinfo", async (req, res) => {
-  try {
-    const { monsterIds } = req.body;
-
-    const monsters = await Monster.find({ _id: { $in: monsterIds } });
-
-    const payload = { monsters };
-
-    res.status(200).json({ payload });
-  } catch (e) {
-    res.status(400).json({ message: "Error: " + e });
-  }
-});
-
-router.get("/campaigns/:id/monsters", async (req, res) => {
-  try {
-    const { valid, message } = utils.validateToken(req.headers.authorization);
-
-    if (valid) {
-      const monsters = await Monster.find({ "flavor.campaign": { $elemMatch: { campaignId: req.params.id } } });
-
-      res.status(200).json({ payload: monsters });
-    } else {
-      res.status(401).json({ message });
-    }
-  } catch (e) {
-    res.status(400).json({ message: "Error: " + e });
-  }
-});
+router.get("/campaigns/:id/monsters", getCampaignMonsters);
 
 module.exports = router;

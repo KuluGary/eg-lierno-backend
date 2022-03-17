@@ -3,29 +3,28 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 
-const app = express();
-if (process.env.NODE_ENV === "development") {
-  require("dotenv").config();
-}
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./docs/swagger.json");
+
+if (process.env.NODE_ENV === "development") require("dotenv").config();
 
 const corsOptions = {
   origin: process.env.CLIENT_URL,
   credentials: true,
 };
 
+const multerMiddleware = multer({ storage: multer.memoryStorage() });
+
+const app = express();
+
 app.use(cors(corsOptions));
 app.use(cookieParser(process.env.SECRET_KEY));
-
-const multerMiddleware = multer({
-  storage: multer.memoryStorage(),
-});
-
 app.use(express.json({ limit: "50mb" }));
 app.use(
   multerMiddleware.fields([
     { name: "original", maxCount: 1 },
     { name: "crop", maxCount: 1 },
-  ]),
+  ])
 );
 
 app.use("/api/v1/auth", require("./routes/user.routes"));
@@ -42,5 +41,7 @@ app.use("/api/v1", require("./routes/campaign.routes"));
 app.use("/api/v1", require("./routes/spell.routes"));
 app.use("/api/v1", require("./routes/image.routes"));
 app.use("/api/v1", require("./routes/logs.routes"));
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 module.exports = app;

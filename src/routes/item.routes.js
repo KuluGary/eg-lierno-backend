@@ -1,62 +1,10 @@
-const express = require("express");
-const router = express.Router();
-const utils = require("../utils/utils");
+const router = require("express").Router();
+const { getItems, postItems, postItem } = require("../controllers/item");
 
-let Item = require("../models/item");
+router.get("/items/:id?", getItems);
 
-router.get("/items", async (_, res) => {
-  try {
-    const items = await Item.find({});
+router.post("/items", postItems);
 
-    res.status(200).json({ payload: items });
-  } catch (error) {
-    res.status(400).json({ message: "Error: " + error });
-  }
-});
-
-router.get("/item/:id", async (req, res) => {
-  try {
-    const item = await Item.findById(req.params.id);
-
-    res.status(200).json({ payload: item });
-  } catch (error) {
-    res.status(400).json({ message: "Error: " + error });
-  }
-});
-
-router.post("/items", async (req, res) => {
-  try {
-    const itemsIds = req.body;
-    const items = await Item.find({ _id: { $in: itemsIds } });
-
-    res.status(200).json({ payload: items });
-  } catch (error) {
-    res.status(400).json({ message: "Error: " + error });
-  }
-});
-
-router.post("/item", async (req, res) => {
-  try {
-    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
-
-    if (valid) {
-      const item = req.body;
-      item["createdBy"] = decoded["userId"];
-      const newItem = new Item(item);
-
-      newItem.save(function (err) {
-        if (err) {
-          return res.status(403).json({ message: "Error: " + err });
-        }
-
-        res.status(200).json({ payload: newItem._id });
-      });
-    } else {
-      res.status(401).json({ message });
-    }
-  } catch (error) {
-    res.status(400).json({ message: error });
-  }
-});
+router.post("/item", postItem);
 
 module.exports = router;

@@ -1,0 +1,473 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Lierno App Documentation"
+  },
+  "servers": [
+    {
+      "url": "https://pro-lierno-backend.herokuapp.com",
+      "description": "Production server environment"
+    }
+  ],
+  "tags": [
+    { "name": "Campaign" },
+    { "name": "Character" },
+    { "name": "Class" },
+    { "name": "Faction" },
+    { "name": "Image" },
+    { "name": "Item" },
+    { "name": "Location" },
+    { "name": "Logs" },
+    { "name": "Monster" },
+    { "name": "Notification" },
+    { "name": "NPC" },
+    { "name": "Race" },
+    { "name": "Spell" },
+    { "name": "User" }
+  ],
+  "schemes": ["https", "http"],
+  "paths": {
+    "/signin": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Sign in users",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "{ name, image, email, id }"
+          },
+          "403": {
+            "description": "{ message }"
+          },
+          "400": {
+            "description": "{ message }"
+          }
+        },
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "type": "string",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/signup": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Registers a new user",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "{ message }"
+          },
+          "403": {
+            "description": "{ message }"
+          },
+          "400": {
+            "description": "{ message }"
+          }
+        },
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "metadata",
+            "in": "query",
+            "type": "string",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/data": {
+      "get": {
+        "tags": ["Checkin"],
+        "summary": "Get data to find booking",
+        "operationId": "getData",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "update",
+            "in": "query",
+            "type": "string",
+            "enum": ["Yes", "No"]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{code: 1, result: {data}}"
+          },
+          "400": {
+            "description": "{code: 3, result: Update is required}"
+          },
+          "500": {
+            "description": "{code: 2, result: Internal server error}"
+          }
+        }
+      }
+    },
+    "/booking": {
+      "get": {
+        "tags": ["Checkin"],
+        "summary": "Get client's booking",
+        "operationId": "getBooking",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "surname",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "bookingId",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{code: 1, result: {reserva, form}}"
+          },
+          "400": {
+            "description": "{code: 3, result: Surname or bookingId is required}"
+          },
+          "404": {
+            "description": "{code: 4, result: Booking not found}"
+          },
+          "500": {
+            "description": "{code: 2, result: Internal server error}"
+          }
+        }
+      }
+    },
+    "/information": {
+      "post": {
+        "tags": ["Checkin"],
+        "summary": "Send information to hotel",
+        "operationId": "sendInformation",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Information"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{code: 1, result: Guests successfully registered}"
+          },
+          "400": {
+            "description": "{code: 3, result: bookingId and information are required}"
+          },
+          "500": {
+            "description": "{code: 2, result: Internal server error}"
+          }
+        }
+      }
+    },
+    "/checkin": {
+      "post": {
+        "tags": ["Checkin"],
+        "summary": "Do checkin",
+        "operationId": "checkin",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Checkin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{code: 1, result: Checkin successful}"
+          },
+          "400": {
+            "description": "{code: 3, result: bookingId is required}"
+          },
+          "404": {
+            "description": "{code: 4, result: Booking doesn't exists}"
+          },
+          "500": {
+            "description": "{code: 2, result: Internal server error}"
+          }
+        }
+      }
+    },
+    "/reset": {
+      "delete": {
+        "tags": ["Checkin"],
+        "summary": "Reset the booking process",
+        "operationId": "resetBooking",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "bookingId",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{code: 1, result: Booking process reseted successfully}"
+          },
+          "400": {
+            "description": "{code: 3, result: bookingId is required}"
+          },
+          "404": {
+            "description": "{code: 4, result: Booking doesn't exists}"
+          },
+          "500": {
+            "description": "{code: 2, result: Internal server error}"
+          }
+        }
+      }
+    },
+    "/features": {
+      "get": {
+        "tags": ["Upselling"],
+        "summary": "Get features",
+        "operationId": "getFeatures",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "bookingId",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "roomId",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{code: 1, result: features}"
+          },
+          "400": {
+            "description": "{code: 3, result: Booking code and room code are required}"
+          },
+          "404": {
+            "description": "{code: 4, result: This hotel no require extra information}"
+          },
+          "500": {
+            "description": "{code: 2, result: Internal server error}"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Upselling"],
+        "summary": "Send features",
+        "operationId": "sendFeatures",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Features"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{code: 1, result: Information added to the booking successfully}"
+          },
+          "400": {
+            "description": "{code: 3, result: bookingId and products are required}"
+          },
+          "500": {
+            "description": "{code: 2, result: Internal server error}"
+          }
+        }
+      }
+    },
+    "/checkout": {
+      "get": {
+        "tags": ["Checkout"],
+        "summary": "Get debt",
+        "operationId": "getCheckout",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "bookingId",
+            "in": "query",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{code: 1, result: debt}"
+          },
+          "400": {
+            "description": "code: 3, result: Booking code is required}"
+          },
+          "404": {
+            "description": "{code: 4, result: Debt not found}"
+          },
+          "500": {
+            "description": "{code: 2, result: Internal server error}"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Checkout"],
+        "summary": "Pay debt",
+        "operationId": "confirmCheckout",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Checkout"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{code: 1, result: Redirection to the payment gateway}"
+          },
+          "400": {
+            "description": "{code: 3, result: Booking code and confirm are required}"
+          },
+          "500": {
+            "description": "{code: 2, result: Internal server error}"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Information": {
+      "type": "object",
+      "properties": {
+        "bookingId": {
+          "type": "string"
+        },
+        "information": {
+          "type": "object"
+        }
+      }
+    },
+    "Checkin": {
+      "type": "object",
+      "properties": {
+        "bookingId": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        }
+      }
+    },
+    "Features": {
+      "type": "object",
+      "properties": {
+        "bookingId": {
+          "type": "string"
+        },
+        "products": {
+          "type": "object",
+          "properties": {
+            "upselling": {
+              "type": "object",
+              "properties": {
+                "products": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "extraInformation": {
+                  "type": "string"
+                }
+              },
+              "items": {
+                "type": "object"
+              }
+            },
+            "preferences": {
+              "type": "object",
+              "properties": {
+                "products": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            },
+            "ancillary": {
+              "type": "object",
+              "properties": {
+                "products": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "extraInformation": {
+                  "type": "string"
+                }
+              },
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Checkout": {
+      "type": "object",
+      "properties": {
+        "bookingId": {
+          "type": "string"
+        },
+        "confirm": {
+          "type": "string",
+          "enum": ["Yes", "No"]
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  }
+}

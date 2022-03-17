@@ -1,0 +1,355 @@
+<html lang="en">
+  <head>
+    <style>
+      html {
+        width: fit-content;
+        height: fit-content;
+      }
+      .stat-block {
+        text-align: left;
+        font-size: 12.5px;
+        line-height: 1.2em;
+        display: inline-block;
+        vertical-align: top;
+        width: 400px;
+        background: #fdf1dc;
+        background-size: cover;
+        background-position: center;
+        background-image: url(http://tetra-cube.com/dnd/dndimages/statblockparch.jpg);
+        padding: 10px 10px 20px;
+        box-sizing: border-box;
+        font-family: "Noto Sans", "Myriad Pro", Calibri, Helvetica, Arial, sans-serif;
+      }
+
+      .section {
+        margin-top: 10px;
+      }
+
+      .stat-block.wide .section,
+      .stat-block.wide {
+        display: inline-block;
+        vertical-align: top;
+        width: 48%;
+        text-align: left;
+      }
+
+      .stat-block.wide .section {
+        margin-right: 1.5%;
+      }
+
+      .stat-block.wide {
+        margin-left: 1.5%;
+      }
+
+      .orange-border {
+        display: block;
+        background: #e69a28;
+        background-size: cover;
+        background-position: center;
+        background-image: url(https://tetra-cube.com/dnd/dndimages/statblockbar.jpg);
+        border: 1px solid #000;
+        height: 5px;
+        padding: 0 10px 0;
+        margin: -10px -10px 0;
+        box-sizing: initial;
+      }
+
+      .orange-border.bottom {
+        margin: 15px -10px -20px;
+      }
+
+      .tapered-rule {
+        display: block;
+        width: 100%;
+        height: 5px;
+        border: none;
+        color: #922610;
+        fill: #922610;
+      }
+
+      .creature-heading {
+        margin: 0 0 10px;
+      }
+
+      .creature-heading h1 {
+        font-family: "Libre Baskerville", "Lora", "Calisto MT", "Bookman Old Style", Bookman, "Goudy Old Style",
+          Garamond, "Hoefler Text", "Bitstream Charter", Georgia, serif;
+        color: #922610;
+        font-size: 21px;
+        margin: 10px 0 0;
+        margin-top: 0;
+        margin-bottom: 6px; 
+        letter-spacing: 1px;
+        font-variant: small-caps;
+        font-weight: bold;
+      }
+
+      .creature-heading h2 {
+        font-family: "Noto Sans", "Myriad Pro", Calibri, Helvetica, Arial, sans-serif;
+        font-weight: normal;
+        font-style: italic;
+        font-size: 12px;
+        line-height: 1.2em;
+        margin: 0;
+      }
+
+      .property-line h4,
+      .property-line p {
+        display: inline;
+        margin: 0;
+        color: #922610;
+        font-size: 12.5px;
+        line-height: 1.2em;
+      }
+
+      .property-line h4 {
+        color: #7a200d;
+      }
+
+      .property-line {
+        text-indent: -1em;
+        padding-left: 1.1em;
+        line-height: 1.4em;
+      }
+
+      .property-line:first-of-type {
+        margin: 8px 0 0;
+      }
+
+      .property-line.last-of:last-of-type {
+        margin: 0 0 10px;
+      }
+
+      .scores {
+        text-align: center;
+        color: #922610;
+      }
+
+      .scores > div {
+        display: inline-block;
+        vertical-align: middle;
+        width: 15.5%;
+        min-width: 40px;
+        font-size: 12px;
+        line-height: 1em;
+      }
+
+      .scores h4 {
+        margin: 10px 0 2px;
+        font-size: 14px;
+        line-height: 1.2em;
+        text-transform: uppercase;
+        color: #7a200d;
+      }
+
+      .scores p {
+        margin: 0 0 10px;
+        line-height: 1.2em;
+      }
+
+      .property-block h4,
+      .property-block p {
+        font-size: 12.5px;
+        line-height: 1.2em;
+        display: inline;
+        margin: 0;
+      }
+
+      .property-block h4 {
+        font-style: italic;
+      }
+
+      .property-block {
+        padding: 10px 2px 0;
+      }
+
+      .legendary {
+        padding-top: 0;
+      }
+
+      .legendary h4 {
+        padding-left: 2px;
+        font-style: normal;
+      }
+
+      .legendary p {
+        font-style: normal;
+      }
+
+      #traits-list-right > :first-child.property-block.legendary {
+        /* for a rare edge case where a legendary action is the first item in the second column */
+        padding-top: 10px;
+      }
+
+      .lairregional {
+        padding-top: 0;
+      }
+
+      .lairregional p {
+        font-style: normal;
+      }
+
+      #traits-list-right > :first-child.property-block.lairregional {
+        /* for a rare edge case where a lair action is the first item in the second column */
+        padding-top: 10px;
+      }
+
+      .actions h3 {
+        border-bottom: 2px solid #7a200d;
+        color: #7a200d;
+        font-size: 21px;
+        font-variant: small-caps;
+        font-weight: normal;
+        letter-spacing: 1px;
+        margin: 20px 0 0;
+        padding: 0 0 10px;
+        text-indent: 5px;
+      }
+
+      .actions {
+        margin: 0 0 20px;
+      }
+
+      .actions:last-child {
+        margin: 0;
+      }
+
+      .indent {
+        text-indent: 1em;
+      }
+
+      .reverse-indent {
+        text-indent: -1em;
+        padding-left: 1em;
+      }
+
+      .top-stats {
+        /* Fix for a weird bug that I can't figure out the cause of */
+        margin: 0 0 10px;
+      }
+
+      #print-block h1,
+      #print-block h3,
+      #print-block h4,
+      #print-block p {
+        color: black;
+      }
+
+      #print-block h3 {
+        border-bottom-color: black;
+      }
+
+      #print-block .tapered-rule {
+        color: black;
+        fill: black;
+      }
+
+      #print-block .stat-block {
+        background: none;
+      }
+
+      #print-block .orange-border {
+        display: none;
+      }
+    </style>
+  </head>
+  <body id="stat-block" class="stat-block">
+      <hr class="orange-border" />
+      <div class="section">
+        <div class="creature-heading">
+          <h1 id="monster-name">Monster</h1>
+          <h2 id="monster-type">Medium humanoid, any alignment</h2>
+        </div>
+        <!-- creature heading -->
+        <svg height="5" width="100%" class="tapered-rule">
+          <polyline points="0,0 400,2.5 0,5"></polyline>
+        </svg>
+        <div class="top-stats">
+          <!-- property line -->
+          <div class="property-line">
+            <h4>Puntos de vida</h4>
+            <p id="hit-points">22 (5d8)</p>
+          </div>
+          <div class="property-line">
+            <h4>Clase de armadura</h4>
+            <p id="armor-class">10</p>
+          </div>
+          <!-- property line -->
+          <div class="property-line">
+            <h4>Velocidad</h4>
+            <p id="speed">30 ft.</p>
+          </div>
+          <!-- property line -->
+          <svg height="5" width="100%" class="tapered-rule">
+            <polyline points="0,0 400,2.5 0,5"></polyline>
+          </svg>
+          <div class="scores">
+            <div class="scores-strength">
+              <h4>FUE</h4>
+              <p id="strpts">10 (+0)</p>
+            </div>
+            <!-- scores strength -->
+            <div class="scores-dexterity">
+              <h4>DES</h4>
+              <p id="dexpts">10 (+0)</p>
+            </div>
+            <!-- scores dexterity -->
+            <div class="scores-constitution">
+              <h4>CON</h4>
+              <p id="conpts">10 (+0)</p>
+            </div>
+            <!-- scores constitution -->
+            <div class="scores-intelligence">
+              <h4>INT</h4>
+              <p id="intpts">10 (+0)</p>
+            </div>
+            <!-- scores intelligence -->
+            <div class="scores-wisdom">
+              <h4>SAB</h4>
+              <p id="wispts">10 (+0)</p>
+            </div>
+            <!-- scores wisdom -->
+            <div class="scores-charisma">
+              <h4>CAR</h4>
+              <p id="chapts">10 (+0)</p>
+            </div>
+            <!-- scores charisma -->
+          </div>
+          <!-- scores -->
+          <svg height="5" width="100%" class="tapered-rule">
+            <polyline points="0,0 400,2.5 0,5"></polyline>
+          </svg>
+          <div id="properties-list">
+            <div class="property-line">
+              <div>
+                <h4>Sentidos</h4>
+                <p>passive Perception 10</p>
+              </div>
+            </div>
+            <!-- property line -->
+            <div class="property-line">
+              <div>
+                <h4>Idiomas</h4>
+                <p>—</p>
+              </div>
+            </div>
+            <!-- property line -->
+          </div>
+          <div id="challenge-rating-line" class="property-line">
+            <h4>Valor de desafío</h4>
+            <p id="challenge-rating">1 (200 XP)</p>
+          </div>
+          <!-- property line -->
+        </div>
+        <!-- top stats -->
+        <svg height="5" width="100%" class="tapered-rule">
+          <polyline points="0,0 400,2.5 0,5"></polyline>
+        </svg>
+        <div class="actions">
+          <div id="traits-list-left"></div>
+        </div>
+        <!-- actions -->
+      </div>
+      <hr class="orange-border bottom" />
+    </div>
+</html>

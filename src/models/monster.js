@@ -1,33 +1,39 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const monsterSchema = new Schema({
+const monsterSchema = new Schema(
+  {
     name: {
       type: String,
       required: true,
-      unique: true,
-      trim: true,
-      minlength: 3
+      unique: false,
+      trim: false,
+      minglength: 3,
     },
     flavor: {
       type: Object,
       required: true,
-      unique: false,
     },
     stats: {
       type: Object,
-      required: false,
-      unique: false      
+      required: true,
+    },
+    config: {
+      type: Object,
     },
     createdBy: {
       type: String,
-      required: false,
-      unique: false
-    }
-  }, {
+      required: true,
+      unique: false,
+      trim: false,
+      minlength: 3,
+    },
+  },
+  {
     timestamps: true,
-  });
+  }
+);
 
-const Monster = mongoose.model('Monster', monsterSchema, 'bestiary');
+const Monster = mongoose.model("Monster", monsterSchema, "bestiary");
 
 module.exports = Monster;

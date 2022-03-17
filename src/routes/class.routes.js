@@ -1,18 +1,7 @@
-const express = require('express');
-const router = express.Router();
+const { getClasses } = require("../controllers/class");
 
-let Class = require('../models/class');
+const router = require("express").Router();
 
-router.get('/classes', async (req, res) => {
-    try {
-        const classes = await Class.find({});
-        res.status(200).json({ payload: classes })
-        
-    } catch (error) {
-        res.status(400).json({ message: "Error: " + error })
-    }
-})
-
+router.get("/classes", getClasses);
 
 module.exports = router;
-
