@@ -17,12 +17,16 @@ mongoose
   })
   .then(() => {
     logger.info(`MongoDB connected at ${uri}`);
-    server = app.listen(port, () => logger.info(`Server is running at ${process.env.SERVER_URL}`));
+    server = app.listen(port, () =>
+      logger.info(`Server is running at ${process.env.SERVER_URL}`)
+    );
 
     const io = socket(server);
     app.io = io;
 
-    io.on("connection", (socket) => logger.info(`Socket connected: ${socket.client.id}`));
+    io.on("connection", (socket) =>
+      logger.info(`Socket connected: ${socket.client.id}`)
+    );
   });
 
 module.exports = mongoose.connection;
