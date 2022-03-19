@@ -16,21 +16,20 @@ module.exports.getCharacters = async (req, res) => {
 
       res.status(200).json({ payload: character });
     } else {
-      const { valid, decoded, message } = utils.validateToken(
-        req.headers.authorization
-      );
+      const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
       if (valid) {
         let characters, total;
-        const { skip, limit } = req.query;
-
+        const { skip, limit, qs } = req.query;
+        
         if (decoded.role === "SUPER_ADMIN") {
           characters = await Character.find({});
         } else {
-          total = await Character.find({ createdBy: decoded.userId }).count();
+          const parsedQs = new RegExp(qs, "i");
+          total = await Character.find({ name: parsedQs, createdBy: decoded.userId }).count();
 
           characters = await Character.find(
-            { createdBy: decoded.userId },
+            { name: parsedQs, createdBy: decoded.userId },
             {
               name: 1,
               "flavor.personality": 1,
@@ -54,22 +53,15 @@ module.exports.getCharacters = async (req, res) => {
 
 module.exports.getDmCharacters = async (req, res) => {
   try {
-    const { valid, decoded, message } = utils.validateToken(
-      req.headers.authorization
-    );
+    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
     if (valid) {
       let campaignsDm = await Campaign.find({ dm: decoded.userId });
       let campaignCharacters = [];
-      campaignsDm.forEach((campaign) =>
-        campaignCharacters.push(...campaign.toJSON()["characters"])
-      );
+      campaignsDm.forEach((campaign) => campaignCharacters.push(...campaign.toJSON()["characters"]));
 
       let characters = await Character.find({
-        $and: [
-          { _id: { $in: campaignCharacters } },
-          { createdBy: { $ne: decoded.userId } },
-        ],
+        $and: [{ _id: { $in: campaignCharacters } }, { createdBy: { $ne: decoded.userId } }],
       });
 
       res.status(200).json({ payload: characters });
@@ -86,19 +78,13 @@ module.exports.putCharacters = async (req, res) => {
     const { valid, message } = utils.validateToken(req.headers.authorization);
 
     if (valid) {
-      await Character.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        function (err) {
-          if (err) {
-            return res
-              .status(403)
-              .json({ message: "El personaje no ha podido ser modificado." });
-          }
-          req.app.io.emit("updatedCharacter", { id: req.params.id });
-          return res.status(200).json({ message: "Personaje modificado" });
+      await Character.findByIdAndUpdate(req.params.id, req.body, function (err) {
+        if (err) {
+          return res.status(403).json({ message: "El personaje no ha podido ser modificado." });
         }
-      );
+        req.app.io.emit("updatedCharacter", { id: req.params.id });
+        return res.status(200).json({ message: "Personaje modificado" });
+      });
     } else {
       res.status(401).json({ message });
     }
@@ -109,9 +95,7 @@ module.exports.putCharacters = async (req, res) => {
 
 module.exports.deleteCharacters = async (req, res) => {
   try {
-    const { valid, decoded, message } = utils.validateToken(
-      req.headers.authorization
-    );
+    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
     if (valid) {
       const character = await Character.findById(req.params.id);
@@ -123,9 +107,7 @@ module.exports.deleteCharacters = async (req, res) => {
           res.status(200).json({ message: "El personaje ha sido eliminado" });
         });
       } else {
-        res
-          .status(401)
-          .json({ message: "Este personaje no es de tu propiedad.." });
+        res.status(401).json({ message: "Este personaje no es de tu propiedad.." });
       }
     } else {
       res.status(401).json({ message });
@@ -137,9 +119,7 @@ module.exports.deleteCharacters = async (req, res) => {
 
 module.exports.postCharacters = async (req, res) => {
   try {
-    const { valid, decoded, message } = utils.validateToken(
-      req.headers.authorization
-    );
+    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
     if (valid) {
       const character = req.body;
@@ -202,10 +182,7 @@ module.exports.getUserCharacters = async (req, res) => {
     if (valid) {
       const userId = req.params.id;
 
-      const character = await Character.find(
-        { createdBy: userId },
-        { name: 1 }
-      );
+      const character = await Character.find({ createdBy: userId }, { name: 1 });
 
       res.status(200).json({ payload: character });
     } else {
@@ -218,9 +195,7 @@ module.exports.getUserCharacters = async (req, res) => {
 
 module.exports.getCharacterSheet = async (req, res) => {
   try {
-    const { valid, decoded, message } = utils.validateToken(
-      req.headers.authorization
-    );
+    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
 
     if (valid) {
       const characterId = req.params.id;
@@ -231,18 +206,14 @@ module.exports.getCharacterSheet = async (req, res) => {
       });
 
       if (!!character) {
-        const formPdfBytes = await fs.promises.readFile(
-          "./src/assets/pdf/character-sheet.pdf"
-        );
+        const formPdfBytes = await fs.promises.readFile("./src/assets/pdf/character-sheet.pdf");
         const pdfDoc = await PDFDocument.load(formPdfBytes);
 
         const form = pdfDoc.getForm();
 
         form.getTextField("Text10.0").setText(character["name"]);
         form.getTextField("Text10.1.0").setText(character["name"]);
-        form
-          .getTextField("Text2.0.1")
-          .setText(character.flavor.background.name || "");
+        form.getTextField("Text2.0.1").setText(character.flavor.background.name || "");
         form.getTextField("Text2.1.0").setText(character.stats.race.name);
         form.getTextField("Text2.1.1").setText(character.flavor.alignment);
 
@@ -250,30 +221,16 @@ module.exports.getCharacterSheet = async (req, res) => {
 
         !!user && form.getTextField("Text2.0.2").setText(user["username"]);
 
-        form
-          .getTextField("Text2.0.0.1.0.0")
-          .setText(character["flavor"]["traits"]["age"]);
-        form
-          .getTextField("Text2.0.0.1.0.1")
-          .setText(character["flavor"]["traits"]["height"]);
-        form
-          .getTextField("Text2.0.0.1.0.2")
-          .setText(character["flavor"]["traits"]["weight"]);
-        form
-          .getTextField("Text2.0.0.1.1.0")
-          .setText(character["flavor"]["traits"]["eyes"]);
-        form
-          .getTextField("Text2.0.0.1.1.1")
-          .setText(character["flavor"]["traits"]["skin"]);
-        form
-          .getTextField("Text2.0.0.1.1.2")
-          .setText(character["flavor"]["traits"]["hair"]);
+        form.getTextField("Text2.0.0.1.0.0").setText(character["flavor"]["traits"]["age"]);
+        form.getTextField("Text2.0.0.1.0.1").setText(character["flavor"]["traits"]["height"]);
+        form.getTextField("Text2.0.0.1.0.2").setText(character["flavor"]["traits"]["weight"]);
+        form.getTextField("Text2.0.0.1.1.0").setText(character["flavor"]["traits"]["eyes"]);
+        form.getTextField("Text2.0.0.1.1.1").setText(character["flavor"]["traits"]["skin"]);
+        form.getTextField("Text2.0.0.1.1.2").setText(character["flavor"]["traits"]["hair"]);
 
         if (character["flavor"]["portrait"]["original"]) {
           const imageUrl = character["flavor"]["portrait"]["original"];
-          const imageBytes = (
-            await axios({ url: imageUrl, responseType: "arraybuffer" })
-          ).data;
+          const imageBytes = (await axios({ url: imageUrl, responseType: "arraybuffer" })).data;
 
           let characterPortrait;
           if (imageUrl.includes(".png")) {
@@ -288,63 +245,31 @@ module.exports.getCharacterSheet = async (req, res) => {
         }
 
         if (character["flavor"]["personality"]) {
-          const parsedPersonality = convertHtmlToString(
-            character["flavor"]["personality"],
-            { wordwrap: null }
-          );
+          const parsedPersonality = convertHtmlToString(character["flavor"]["personality"], { wordwrap: null });
 
-          const [firstPersonalityField, secondPersonalityField] =
-            parsedPersonality.match(/[\s\S]{1,900}/g) || [];
+          const [firstPersonalityField, secondPersonalityField] = parsedPersonality.match(/[\s\S]{1,900}/g) || [];
 
-          if (!!firstPersonalityField)
-            form
-              .getTextField("Text15.1.0.1.0.0.0")
-              .setText(firstPersonalityField);
+          if (!!firstPersonalityField) form.getTextField("Text15.1.0.1.0.0.0").setText(firstPersonalityField);
 
-          if (!!secondPersonalityField)
-            form.getTextField("Text15.1.0.1.1").setText(secondPersonalityField);
+          if (!!secondPersonalityField) form.getTextField("Text15.1.0.1.1").setText(secondPersonalityField);
         }
 
         if (character["flavor"]["appearance"]) {
-          const parsedAppearance = convertHtmlToString(
-            character["flavor"]["appearance"],
-            { wordwrap: null }
-          );
-          const [firstAppearanceField, secondAppearanceField] =
-            parsedAppearance.match(/[\s\S]{1,700}/g) || [];
+          const parsedAppearance = convertHtmlToString(character["flavor"]["appearance"], { wordwrap: null });
+          const [firstAppearanceField, secondAppearanceField] = parsedAppearance.match(/[\s\S]{1,700}/g) || [];
 
-          if (!!firstAppearanceField)
-            form
-              .getTextField("Text15.1.0.1.0.1.0")
-              .setText(firstAppearanceField);
+          if (!!firstAppearanceField) form.getTextField("Text15.1.0.1.0.1.0").setText(firstAppearanceField);
 
-          if (!!secondAppearanceField)
-            form
-              .getTextField("Text15.1.0.1.0.1.1")
-              .setText(secondAppearanceField);
+          if (!!secondAppearanceField) form.getTextField("Text15.1.0.1.0.1.1").setText(secondAppearanceField);
         }
 
-        form
-          .getTextField("Text5.0")
-          .setText(`${character["stats"]["armorClass"]}`);
-        form
-          .getTextField("Text5.1")
-          .setText(`${character["stats"]["initiativeBonus"]}`);
-        form
-          .getTextField("Text5.2")
-          .setText(`${character["stats"]["speed"]["land"]}`);
-        form
-          .getTextField("Text7")
-          .setText(`${character["stats"]["hitPoints"]["max"]}`);
-        form
-          .getTextField("Text1.0.1.0")
-          .setText(`${character["stats"]["passivePerception"]}`);
-        form
-          .getTextField("Text14.0")
-          .setText(convertHtmlToString(character["stats"]["proficiencies"]));
-        form
-          .getTextField("Text1.0.1.1")
-          .setText(`${character["stats"]["proficiencyBonus"]}`);
+        form.getTextField("Text5.0").setText(`${character["stats"]["armorClass"]}`);
+        form.getTextField("Text5.1").setText(`${character["stats"]["initiativeBonus"]}`);
+        form.getTextField("Text5.2").setText(`${character["stats"]["speed"]["land"]}`);
+        form.getTextField("Text7").setText(`${character["stats"]["hitPoints"]["max"]}`);
+        form.getTextField("Text1.0.1.0").setText(`${character["stats"]["passivePerception"]}`);
+        form.getTextField("Text14.0").setText(convertHtmlToString(character["stats"]["proficiencies"]));
+        form.getTextField("Text1.0.1.1").setText(`${character["stats"]["proficiencyBonus"]}`);
 
         // CLASSES
         const charClassArray = [];
@@ -367,9 +292,7 @@ module.exports.getCharacterSheet = async (req, res) => {
         Object.keys(stats).forEach((stat, index) => {
           form.getTextField(`Text4.${index}`).setText(`${stats[stat]}`);
 
-          form
-            .getTextField(`Text3.${index}`)
-            .setText(`${getModifier(stats[stat])}`);
+          form.getTextField(`Text3.${index}`).setText(`${getModifier(stats[stat])}`);
         });
 
         // SAVING THROWS
@@ -378,13 +301,9 @@ module.exports.getCharacterSheet = async (req, res) => {
           let bonus = 0;
 
           if (savingThrows[check].expertise) {
-            bonus =
-              Math.floor((stats[check] - 10) / 2) +
-              character["stats"]["proficiencyBonus"] * 2;
+            bonus = Math.floor((stats[check] - 10) / 2) + character["stats"]["proficiencyBonus"] * 2;
           } else if (savingThrows[check].proficient) {
-            bonus =
-              Math.floor((stats[check] - 10) / 2) +
-              character["stats"]["proficiencyBonus"];
+            bonus = Math.floor((stats[check] - 10) / 2) + character["stats"]["proficiencyBonus"];
           } else {
             bonus = Math.floor((stats[check] - 10) / 2);
           }
@@ -393,17 +312,10 @@ module.exports.getCharacterSheet = async (req, res) => {
         };
 
         Object.keys(savingThrows).forEach((savingThrow, index) => {
-          form
-            .getTextField(`Text6.${index}`)
-            .setText(`${getSavingThrow(savingThrow)}`);
+          form.getTextField(`Text6.${index}`).setText(`${getSavingThrow(savingThrow)}`);
 
-          if (
-            savingThrows[savingThrow].expertise ||
-            savingThrows[savingThrow].proficient
-          ) {
-            form
-              .getCheckBox(`Check Box 23.${index + (index === 5 ? ".0" : "")}`)
-              .check();
+          if (savingThrows[savingThrow].expertise || savingThrows[savingThrow].proficient) {
+            form.getCheckBox(`Check Box 23.${index + (index === 5 ? ".0" : "")}`).check();
           }
         });
 
@@ -412,14 +324,10 @@ module.exports.getCharacterSheet = async (req, res) => {
         const getSkill = (check, i) => {
           let bonus = 0;
           if (skills[check].expertise) {
-            bonus =
-              Math.floor((stats[skills[check].modifier] - 10) / 2) +
-              character["stats"]["proficiencyBonus"] * 2;
+            bonus = Math.floor((stats[skills[check].modifier] - 10) / 2) + character["stats"]["proficiencyBonus"] * 2;
             form.getCheckBox("Check Box 23.5.1." + i).check();
           } else if (skills[check].proficient) {
-            bonus =
-              Math.floor((stats[skills[check].modifier] - 10) / 2) +
-              character["stats"]["proficiencyBonus"];
+            bonus = Math.floor((stats[skills[check].modifier] - 10) / 2) + character["stats"]["proficiencyBonus"];
             form.getCheckBox("Check Box 23.5.1." + i).check();
           } else {
             bonus = Math.floor((stats[skills[check].modifier] - 10) / 2);
@@ -450,25 +358,19 @@ module.exports.getCharacterSheet = async (req, res) => {
         ];
 
         skillKeys.forEach((key, index) => {
-          form
-            .getTextField(`Text6.6.${index}`)
-            .setText(`${getSkill(key, index)}`);
+          form.getTextField(`Text6.6.${index}`).setText(`${getSkill(key, index)}`);
         });
 
         // HIT DICE
         let maxDice = 0;
 
-        character["stats"]["classes"].forEach(
-          (charClass) => (maxDice += charClass.classLevel)
-        );
+        character["stats"]["classes"].forEach((charClass) => (maxDice += charClass.classLevel));
         form.getTextField("Text13").setText(`${maxDice}`);
 
         // FLAVOR
 
         !!character["flavor"]["backstory"] &&
-          form
-            .getTextField("Text15.1.0.0.1")
-            .setText(convertHtmlToString(character["flavor"]["backstory"]));
+          form.getTextField("Text15.1.0.0.1").setText(convertHtmlToString(character["flavor"]["backstory"]));
 
         form
           .getTextField("Text12")
@@ -477,32 +379,20 @@ module.exports.getCharacterSheet = async (req, res) => {
               "==ACCIONES==",
               ...(character["stats"]["actions"] || []).map((el) => el.name),
               "==ACCIONES ADICIONALES==",
-              ...(character["stats"]["bonusActions"] || []).map(
-                (el) => el.name
-              ),
+              ...(character["stats"]["bonusActions"] || []).map((el) => el.name),
               "==REACCIONES==",
               ...(character["stats"]["reactions"] || []).map((el) => el.name),
               "==OTRAS HABILIDADES==",
-              ...(character["stats"]["additionalAbilities"] || []).map(
-                (el) => el.name
-              ),
+              ...(character["stats"]["additionalAbilities"] || []).map((el) => el.name),
             ].join("\n")
           );
 
         // ITEMS
         const itemIds = [
-          ...(character["stats"]["equipment"]["items"] || []).map(
-            (item) => item.id
-          ),
-          ...(character["stats"]["equipment"]["armor"] || []).map(
-            (armor) => armor.id
-          ),
-          ...(character["stats"]["equipment"]["weapons"] || []).map(
-            (weapon) => weapon.id
-          ),
-          ...(character["stats"]["equipment"]["vehicles"] || []).map(
-            (vehicle) => vehicle.id
-          ),
+          ...(character["stats"]["equipment"]["items"] || []).map((item) => item.id),
+          ...(character["stats"]["equipment"]["armor"] || []).map((armor) => armor.id),
+          ...(character["stats"]["equipment"]["weapons"] || []).map((weapon) => weapon.id),
+          ...(character["stats"]["equipment"]["vehicles"] || []).map((vehicle) => vehicle.id),
         ];
 
         const items = await Item.find({ _id: { $in: itemIds } });
@@ -547,21 +437,15 @@ module.exports.getCharacterSheet = async (req, res) => {
           let damageBonus = 0;
           let bonusStat = attack.data.modifier;
 
-          damageBonus = Math.floor(
-            (character["stats"].abilityScores[bonusStat] - 10) / 2
-          );
+          damageBonus = Math.floor((character["stats"].abilityScores[bonusStat] - 10) / 2);
 
-          return `${damage.numDie}d${damage.dieSize} ${
-            damageBonus >= 0 ? "+" : ""
-          } ${damageBonus}`;
+          return `${damage.numDie}d${damage.dieSize} ${damageBonus >= 0 ? "+" : ""} ${damageBonus}`;
         };
 
         character["stats"]["attacks"].slice(0, 3).forEach((attack, index) => {
           form.getTextField(`Wpn Name.${index}.0`).setText(attack.name);
 
-          form
-            .getTextField(`Text1.${index + (index === 0 ? ".0" : "")}`)
-            .setText(calculateToHitBonusStr(attack));
+          form.getTextField(`Text1.${index + (index === 0 ? ".0" : "")}`).setText(calculateToHitBonusStr(attack));
 
           const damages = (Object.values(attack.data.damage || {}) || [])
             .map((damage) => calculateDamageBonusStr(damage, attack))
@@ -589,26 +473,19 @@ module.exports.getCharacterSheet = async (req, res) => {
 
         character.stats["spells"].forEach((spellcasting) => {
           Object.keys(spellcasting.spells).forEach((spellLevel) => {
-            spellIds[spellLevel] = spellcasting.spells[spellLevel].map(
-              ({ spellId }) => spellId
-            );
+            spellIds[spellLevel] = spellcasting.spells[spellLevel].map(({ spellId }) => spellId);
           });
         });
 
         for (const spellLevel in spellIds) {
-          let spells = await Spell.find(
-            { _id: { $in: spellIds[spellLevel] } },
-            { _id: -1, name: 1 }
-          );
+          let spells = await Spell.find({ _id: { $in: spellIds[spellLevel] } }, { _id: -1, name: 1 });
 
           spellIds[spellLevel] = spells;
         }
 
         spellTextFields.forEach((field, index) => {
           if (index in spellIds) {
-            form
-              .getTextField(field)
-              .setText(spellIds[index].map((spell) => spell.name).join("\n"));
+            form.getTextField(field).setText(spellIds[index].map((spell) => spell.name).join("\n"));
           }
         });
 
@@ -626,19 +503,11 @@ module.exports.getCharacterSheet = async (req, res) => {
         let spellDC = [];
 
         character["stats"]["spells"].forEach((spellcasting) => {
-          const abilityScoreModifier = Math.floor(
-            (character["stats"].abilityScores[spellcasting.modifier] - 10) / 2
-          );
+          const abilityScoreModifier = Math.floor((character["stats"].abilityScores[spellcasting.modifier] - 10) / 2);
 
-          spellcastingAbility.push(
-            spellcastingDictionary[spellcasting.modifier]
-          );
-          spellDC.push(
-            8 + character["stats"]["proficiencyBonus"] + abilityScoreModifier
-          );
-          spellBonus.push(
-            abilityScoreModifier + character["stats"]["proficiencyBonus"]
-          );
+          spellcastingAbility.push(spellcastingDictionary[spellcasting.modifier]);
+          spellDC.push(8 + character["stats"]["proficiencyBonus"] + abilityScoreModifier);
+          spellBonus.push(abilityScoreModifier + character["stats"]["proficiencyBonus"]);
         });
 
         form.getField("Text18.0").setText(spellcastingAbility.join(" / "));
@@ -651,9 +520,7 @@ module.exports.getCharacterSheet = async (req, res) => {
 
         res.status(200).json({ payload: base64Url });
       } else {
-        res
-          .status(400)
-          .json({ message: "No hay ningún personaje tuyo con este ID." });
+        res.status(400).json({ message: "No hay ningún personaje tuyo con este ID." });
       }
     } else {
       res.status(401).json({ message });
