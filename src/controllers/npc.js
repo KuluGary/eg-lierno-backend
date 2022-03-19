@@ -73,7 +73,8 @@ const skillsJson = {
   },
   athletics: {
     name: "Atletismo",
-    description: "Tu prueba de Fuerza (Atletismo) cubre situaciones difíciles mientras escalas, saltas o nadas",
+    description:
+      "Tu prueba de Fuerza (Atletismo) cubre situaciones difíciles mientras escalas, saltas o nadas",
   },
   deception: {
     name: "Engaño",
@@ -219,7 +220,9 @@ const innateSpellCastingLabels = {
 
 module.exports.getNpc = async (req, res) => {
   try {
-    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+    const { valid, decoded, message } = utils.validateToken(
+      req.headers.authorization
+    );
 
     if (valid) {
       if (!!req.params.id) {
@@ -229,9 +232,22 @@ module.exports.getNpc = async (req, res) => {
 
         res.status(200).json({ payload: npc });
       } else {
-        const npcs = await Npc.find({ createdBy: decoded.userId });
+        const { skip, limit } = req.query;
+        const total = await Npc.find({ createdBy: decoded.userId }).count();
 
-        res.status(200).json({ payload: npcs });
+        const npcs = await Npc.find(
+          { createdBy: decoded.userId },
+          {
+            name: 1,
+            "flavor.personality": 1,
+            "flavor.portrait.avatar": 1,
+            createdBy: 1,
+          }
+        )
+          .limit(parseInt(limit) ?? 0)
+          .skip(parseInt(skip) ?? 0);
+
+        res.status(200).json({ payload: { data: npcs, total } });
       }
     } else {
       res.status(401).json({ message });
@@ -243,7 +259,9 @@ module.exports.getNpc = async (req, res) => {
 
 module.exports.postNpc = async (req, res) => {
   try {
-    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+    const { valid, decoded, message } = utils.validateToken(
+      req.headers.authorization
+    );
 
     if (valid) {
       const npc = req.body;
@@ -284,7 +302,9 @@ module.exports.putNpc = async (req, res) => {
 
 module.exports.deleteNpc = async (req, res) => {
   try {
-    const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
+    const { valid, decoded, message } = utils.validateToken(
+      req.headers.authorization
+    );
 
     if (valid) {
       const npc = await Npc.findById(req.params.id);
@@ -324,7 +344,9 @@ module.exports.getCampaignNpcs = async (req, res) => {
     const { valid, message } = utils.validateToken(req.headers.authorization);
 
     if (valid) {
-      const npcs = await Npc.find({ "flavor.campaign": { $elemMatch: { campaignId: req.params.id } } });
+      const npcs = await Npc.find({
+        "flavor.campaign": { $elemMatch: { campaignId: req.params.id } },
+      });
 
       res.status(200).json({ payload: npcs });
     } else {
@@ -357,9 +379,14 @@ module.exports.getNpcStatBlock = async (req, res) => {
 
     if (valid) {
       const modifier = (stat) => Math.floor((stat - 10) / 2);
-      const getOperatorString = (modifier) => `${modifier > 0 ? "+" : ""}${modifier}`;
+      const getOperatorString = (modifier) =>
+        `${modifier > 0 ? "+" : ""}${modifier}`;
       const getSpeedString = (speed) => {
-        const speedDictionary = { land: "en tierra", air: "en el aire", swim: "en el agua" };
+        const speedDictionary = {
+          land: "en tierra",
+          air: "en el aire",
+          swim: "en el agua",
+        };
         const speeds = Object.keys(speed)
           .filter((key) => speed[key] > 0)
           .map((key) => `${speed[key]}ft. (${speedDictionary[key]})`);
@@ -367,9 +394,15 @@ module.exports.getNpcStatBlock = async (req, res) => {
         return speeds.join(", ");
       };
 
-      const getSavingThrowString = (abilityScores, savingThrows, proficiency) => {
+      const getSavingThrowString = (
+        abilityScores,
+        savingThrows,
+        proficiency
+      ) => {
         const modifiers = Object.keys(savingThrows ?? {})
-          .filter((key) => savingThrows[key].proficient || savingThrows[key].expertise)
+          .filter(
+            (key) => savingThrows[key].proficient || savingThrows[key].expertise
+          )
           .map((key) => {
             let modifier = Math.floor((abilityScores[key] - 10) / 2);
 
@@ -389,7 +422,9 @@ module.exports.getNpcStatBlock = async (req, res) => {
           const modifiers = Object.entries(skills)
             .filter(([_, skill]) => skill.proficient || skill.expertise)
             .map(([name, skill]) => {
-              let modifier = Math.floor((abilityScores[skill.modifier] - 10) / 2);
+              let modifier = Math.floor(
+                (abilityScores[skill.modifier] - 10) / 2
+              );
 
               if (skill.expertise) {
                 modifier += parseInt(proficiency) * 2;
@@ -397,9 +432,9 @@ module.exports.getNpcStatBlock = async (req, res) => {
                 modifier += parseInt(proficiency);
               }
 
-              return `${skillsJson[name]?.name} ${modifier >= 0 ? "+" : "-"} ${modifier} (${
-                statLabels[skill.modifier]
-              })`;
+              return `${skillsJson[name]?.name} ${
+                modifier >= 0 ? "+" : "-"
+              } ${modifier} (${statLabels[skill.modifier]})`;
             });
 
           return modifiers.join(", ");
@@ -436,13 +471,15 @@ module.exports.getNpcStatBlock = async (req, res) => {
         type = `Ataque de arma ${type.join(" o ")}.`;
         range = range.join(" o ");
 
-        toHitBonus = modifier(abilityScores[bonusStat]) + (attack.proficient ? proficiency : 0);
+        toHitBonus =
+          modifier(abilityScores[bonusStat]) +
+          (attack.proficient ? proficiency : 0);
 
         damageBonus = modifier(abilityScores[bonusStat]);
 
-        return `<em>${type}</em> 1d20 ${getOperatorString(toHitBonus)} al golpe, alcance ${range} Daño ${Object.entries(
-          attack.data.damage
-        )
+        return `<em>${type}</em> 1d20 ${getOperatorString(
+          toHitBonus
+        )} al golpe, alcance ${range} Daño ${Object.entries(attack.data.damage)
           .filter(([_, value]) => {
             const die = `${value.numDie}d${value.dieSize}`;
             const isIn = !indexes.includes(die);
@@ -474,7 +511,9 @@ module.exports.getNpcStatBlock = async (req, res) => {
             if (key === "extraDamage") {
               const median = ((dmg.dieSize + 1) * dmg.numDie) / dmg.numDie;
 
-              return `y ${median} (${dmg.numDie}d${dmg.dieSize}) ${dmg.type.toLowerCase()} de daño adicional`;
+              return `y ${median} (${dmg.numDie}d${
+                dmg.dieSize
+              }) ${dmg.type.toLowerCase()} de daño adicional`;
             }
 
             return `${dmg.numDie}d${dmg.dieSize} ${
@@ -488,7 +527,9 @@ module.exports.getNpcStatBlock = async (req, res) => {
         if (caster === "00000") return "Lanzamiento de conjuros innato.";
 
         if (!!classes) {
-          const className = classes.find((charClass) => charClass._id == caster)?.name?.toLowerCase();
+          const className = classes
+            .find((charClass) => charClass._id == caster)
+            ?.name?.toLowerCase();
 
           if (!!className) {
             return `Lanzamiento de conjuros de ${className}.`;
@@ -518,7 +559,14 @@ module.exports.getNpcStatBlock = async (req, res) => {
         }
       };
 
-      const getSpellStrings = (spellcasting, spellData, abilityScores, name, classes, proficiency) => {
+      const getSpellStrings = (
+        spellcasting,
+        spellData,
+        abilityScores,
+        name,
+        classes,
+        proficiency
+      ) => {
         const { spells, modifier: mod, caster } = spellcasting;
 
         let spellDC = "N/A";
@@ -528,7 +576,9 @@ module.exports.getNpcStatBlock = async (req, res) => {
 
         Object.keys(spells).forEach((key) => {
           spells[key].forEach((spell) => {
-            const element = spellData.find((spellDataElement) => spellDataElement._id == spell.spellId);
+            const element = spellData.find(
+              (spellDataElement) => spellDataElement._id == spell.spellId
+            );
 
             if (key in spellByLevel) {
               spellByLevel[key].push(element.name);
@@ -554,7 +604,9 @@ module.exports.getNpcStatBlock = async (req, res) => {
         };
 
         Object.keys(spellByLevel).forEach((key) => {
-          const spellStr = spellByLevel[key].map((i, index) => (index > 0 ? i.toLowerCase() : i)).join(", ");
+          const spellStr = spellByLevel[key]
+            .map((i, index) => (index > 0 ? i.toLowerCase() : i))
+            .join(", ");
 
           if (caster === "00000") {
             spellString.description += `<li><b>${innateSpellCastingLabels[key]}</b>: ${spellStr}</li>`;
@@ -562,7 +614,11 @@ module.exports.getNpcStatBlock = async (req, res) => {
             spellString.description += `<li>${
               parseInt(key) === 0
                 ? "<b>Trucos (a voluntad)</b>"
-                : `<b>Nivel ${key} (${getSpellSlots(parseInt(key) - 1, classes, spellcasting)} huecos)</b>`
+                : `<b>Nivel ${key} (${getSpellSlots(
+                    parseInt(key) - 1,
+                    classes,
+                    spellcasting
+                  )} huecos)</b>`
             }: ${spellStr}.</li>`;
           }
         });
@@ -575,7 +631,9 @@ module.exports.getNpcStatBlock = async (req, res) => {
       const npc = await Npc.findOne({ _id: npcId });
 
       if (!!npc) {
-        const $ = cheerio.load(fs.readFileSync(path.join(__dirname, "../assets/html/statblock.html")));
+        const $ = cheerio.load(
+          fs.readFileSync(path.join(__dirname, "../assets/html/statblock.html"))
+        );
 
         $("#monster-name").text(npc.name);
 
@@ -587,10 +645,15 @@ module.exports.getNpcStatBlock = async (req, res) => {
         );
 
         $("#hit-points").text(
-          `${npc["stats"]["hitPoints"]["current"] ?? npc["stats"]["hitPoints"]["max"]} / ${
+          `${
+            npc["stats"]["hitPoints"]["current"] ??
             npc["stats"]["hitPoints"]["max"]
-          } (${npc["stats"]["hitDie"]["num"]}d${npc["stats"]["hitDie"]["size"]} + ${
-            Math.floor((npc["stats"]["abilityScores"]["constitution"] - 10) / 2) * npc["stats"]["hitDie"]["num"]
+          } / ${npc["stats"]["hitPoints"]["max"]} (${
+            npc["stats"]["hitDie"]["num"]
+          }d${npc["stats"]["hitDie"]["size"]} + ${
+            Math.floor(
+              (npc["stats"]["abilityScores"]["constitution"] - 10) / 2
+            ) * npc["stats"]["hitDie"]["num"]
           })`
         );
 
@@ -612,15 +675,24 @@ module.exports.getNpcStatBlock = async (req, res) => {
         $("#properties-list").prepend(`
           <div class="property-line">
             <h4>Tiradas de salvación</h4>
-            <p>${getSavingThrowString(npc.stats.abilityScores, npc.stats.savingThrows, npc.stats.proficiencyBonus)}</p>
+            <p>${getSavingThrowString(
+              npc.stats.abilityScores,
+              npc.stats.savingThrows,
+              npc.stats.proficiencyBonus
+            )}</p>
           </div>
         `);
 
-        Object.entries(npc["stats"]["abilityScores"]).forEach(([key, value]) => {
-          $(`#${key.substring(0, 3)}pts`).text(
-            `${value.toString()} (${(Math.floor((value - 10) / 2) >= 0 ? "+" : "") + Math.floor((value - 10) / 2)})`
-          );
-        });
+        Object.entries(npc["stats"]["abilityScores"]).forEach(
+          ([key, value]) => {
+            $(`#${key.substring(0, 3)}pts`).text(
+              `${value.toString()} (${
+                (Math.floor((value - 10) / 2) >= 0 ? "+" : "") +
+                Math.floor((value - 10) / 2)
+              })`
+            );
+          }
+        );
 
         $("#challenge-rating").text(
           `${npc["stats"]["challengeRating"]} (${
