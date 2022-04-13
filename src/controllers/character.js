@@ -21,7 +21,7 @@ module.exports.getCharacters = async (req, res) => {
       if (valid) {
         let characters, total;
         const { skip, limit, qs } = req.query;
-        
+
         if (decoded.role === "SUPER_ADMIN") {
           characters = await Character.find({});
         } else {
@@ -32,8 +32,10 @@ module.exports.getCharacters = async (req, res) => {
             { name: parsedQs, createdBy: decoded.userId },
             {
               name: 1,
-              "flavor.personality": 1,
               "flavor.portrait.avatar": 1,
+              "flavor.traits.pronoun": 1,
+              "stats.classes": 1,
+              "stats.race": 1,
               createdBy: 1,
             }
           )
@@ -107,7 +109,7 @@ module.exports.deleteCharacters = async (req, res) => {
           res.status(200).json({ message: "El personaje ha sido eliminado" });
         });
       } else {
-        res.status(401).json({ message: "Este personaje no es de tu propiedad.." });
+        res.status(401).json({ message: "Este personaje no es de tu propiedad." });
       }
     } else {
       res.status(401).json({ message });
@@ -275,10 +277,6 @@ module.exports.getCharacterSheet = async (req, res) => {
         const charClassArray = [];
         character["stats"]["classes"].forEach((charClass) => {
           let string = `${charClass.className} (${charClass.classLevel})`;
-
-          if (!!charClass.subclassName) {
-            string += ` ${charClass.subclassName}`;
-          }
 
           charClassArray.push(string);
         });

@@ -240,6 +240,8 @@ module.exports.getNpc = async (req, res) => {
             name: 1,
             "flavor.personality": 1,
             "flavor.portrait.avatar": 1,
+            "flavor.class": 1,
+            "stats.race.name": 1,
             createdBy: 1,
           }
         )
