@@ -184,7 +184,7 @@ module.exports.getUserCharacters = async (req, res) => {
     if (valid) {
       const userId = req.params.id;
 
-      const character = await Character.find({ createdBy: userId }, { name: 1 });
+      const character = await Character.find({ createdBy: userId }, { name: 1, createdBy: 1 });
 
       res.status(200).json({ payload: character });
     } else {
