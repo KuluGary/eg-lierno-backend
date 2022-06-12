@@ -25,6 +25,8 @@
   "author": "Gary Cuétara & Eli Lage",
   "license": "ISC",
   "dependencies": {
+    "@lierno/core-helpers": "^1.1.3",
+    "@lierno/dnd-helpers": "^1.1.4",
     "@sendgrid/mail": "^7.4.0",
     "ansi-colors": "^4.1.1",
     "apollo-server-express": "^2.19.2",
