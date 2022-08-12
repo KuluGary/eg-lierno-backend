@@ -18,7 +18,7 @@ router.get("/dm-characters", getDmCharacters);
 
 router.put("/characters/:id", putCharacters);
 
-router.delete("/characters/:id", deleteCharacters);
+router.delete("/character/:id", deleteCharacters);
 
 router.post("/characters", postCharacters);
 

@@ -18,7 +18,7 @@ router.get("/user/:id?", getUserData);
 
 router.post("/user/:id", postUserData);
 
-router.post("/activate/:token", activateUser);
+router.get("/activate/:token", activateUser);
 
 router.post("/recover-password/:token?", recoverPassword);
 

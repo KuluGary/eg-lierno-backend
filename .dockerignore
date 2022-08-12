@@ -1,0 +1,10 @@
+# NODE Files
+./node_modules
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Other
+./bin

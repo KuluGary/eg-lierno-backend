@@ -1,6 +1,9 @@
 const Spell = require("../models/spell");
 const utils = require("../utils/utils");
 
+/**
+ * @deprecated
+ */
 module.exports.postSpells = async (req, res) => {
   try {
     const type = req.query.type;
@@ -24,15 +27,23 @@ module.exports.postSpells = async (req, res) => {
 module.exports.getSpells = async (req, res) => {
   try {
     if (req.params.id) {
-      const spell = await Spell.findById(req.params.id);
+      const spellIds = JSON.parse(req.params.id);
 
-      res.status(200).json({ payload: spell });
+      if (Array.isArray(spellIds)) {
+        const spells = await Spell.find({ _id: { $in: spellIds } });
+
+        res.status(200).json({ payload: spells });
+      } else {
+        const spell = await Spell.findById(spellIds);
+
+        res.status(200).json({ payload: spell });
+      }
     } else {
-      const { valid, message } = utils.validateToken(req.headers.authorization);
+      const { valid, decoded, message } = utils.validateToken(req.headers.authorization);
       if (valid) {
         let spells;
 
-        spells = await Spell.find({});
+        spells = await Spell.find({ $or: [{ public: true }, { public: false, createdBy: decoded.userId }] });
 
         res.status(200).json({ payload: spells });
       } else {

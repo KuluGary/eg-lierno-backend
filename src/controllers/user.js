@@ -1,9 +1,12 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
-const mailer = require("@sendgrid/mail");
+// const mailer = require("@sendgrid/mail");
+const mailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const discordUtils = require("../utils/discord");
 const utils = require("../utils/utils");
+const secret = process.env.SECRET_KEY;
+const activateAccountTemplate = require("../utils/email-templates/activate-account");
 
 module.exports.signIn = async (req, res) => {
   try {
@@ -29,7 +32,9 @@ module.exports.signIn = async (req, res) => {
 module.exports.signUp = async (req, res) => {
   try {
     const { username, password, metadata } = req.body;
-    const checkUser = await User.findOne({ username });
+    const checkUser = await /*User.findOne({ username });*/ User.findOne({
+      $or: [{ username }, { "metadata.email": metadata.email }],
+    });
 
     if (checkUser) return res.status(403).json({ message: "Usuario ya registrado" });
 
@@ -44,8 +49,6 @@ module.exports.signUp = async (req, res) => {
       newUser.save(function (err) {
         if (err) return res.status(500).json({ message: err });
 
-        mailer.setApiKey(process.env.SENDGRID_KEY);
-
         const token = jwt.sign(
           {
             _id: newUser._id,
@@ -58,24 +61,35 @@ module.exports.signUp = async (req, res) => {
           }
         );
 
-        const email = {
+        const transporter = mailer.createTransport({
+          service: "gmail",
+          auth: {
+            type: "OAuth2",
+            user: process.env.G_EMAIL,
+            pass: process.env.G_PASS,
+            clientId: process.env.G_OAUTH_CLIENT_ID,
+            clientSecret: process.env.G_OAUTH_SECRET,
+            refreshToken: process.env.G_OAUTH_REFRESH_TOKEN,
+          },
+        });
+
+        const mailOptions = {
+          from: process.env.G_EMAIL,
           to: metadata.email,
-          from: process.env.SENDGRID_EMAIL,
           subject: "Activación de cuenta en Lierno App ✔",
           html: activateAccountTemplate
             .replace("|USERNAME|", username)
-            .replace("|URL|", `${process.env.CLIENT_URL}activate/${token}`)
+            .replace("|URL|", `${process.env.SERVER_URL}/api/v1/auth/activate/${token}`)
             .replace("|DATE|", `${new Date().getFullYear()}`),
         };
 
-        mailer
-          .send(email)
-          .then(() =>
-            res
-              .status(200)
-              .json({ message: "Cuenta registrada. Se ha enviado un mail de activación a " + metadata.email })
-          )
-          .catch((err) => res.status(500).json({ message: "Error en la creación de cuenta: " + err }));
+        transporter.sendMail(mailOptions, (err) => {
+          if (err) return res.status(500).json({ message: "Error en la creación de cuenta: " + err });
+
+          return res
+            .status(200)
+            .json({ message: "Cuenta registrada. Se ha enviado un mail de activación a " + metadata.email });
+        });
       });
     });
   } catch (err) {
@@ -157,7 +171,7 @@ module.exports.activateUser = async (req, res) => {
       User.findByIdAndUpdate(data._id, { isActive: true }, function (err, data) {
         if (err) return res.status(403).json({ message: "No se ha podido activar la cuenta especificada" });
 
-        res.status(200).json({ message: "La cuenta ha sido activada correctamente" });
+        res.redirect(process.env.CLIENT_URL + "/login");
       });
     });
   } catch (err) {

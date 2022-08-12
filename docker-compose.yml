@@ -1,0 +1,47 @@
+version: '3.9'
+name: lierno-app
+
+services:
+  # MongoDB services
+  mongodb:
+    container_name: db
+    image: mongo:latest
+    restart: always
+    ports:
+      - 2717:27017
+    volumes:
+      - E:/Usuarios/garyc/Aplicaciones/MongoDB/data:/data/db
+  
+  # Node API service
+  api:
+    container_name: api
+    build: .
+    ports:
+      - 3001:3001
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - .env
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/lierno
+    depends_on:
+      - mongodb
+  
+  # Client service
+  client:
+    container_name: client
+    build: ../client
+    ports:
+      - 3000:3000
+    volumes:
+      - ../client:/usr/src/client
+      - /usr/src/client/node_modules
+      - /usr/src/app/.next
+    env_file:
+      - ../client/.env.local
+    depends_on:
+      - api
+
+volumes:
+  mongodb: {}

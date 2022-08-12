@@ -26,24 +26,43 @@ module.exports.getCharacters = async (req, res) => {
           characters = await Character.find({});
         } else {
           const parsedQs = new RegExp(qs, "i");
-          total = await Character.find({ name: parsedQs, createdBy: decoded.userId }).count();
-
-          characters = await Character.find(
-            { name: parsedQs, createdBy: decoded.userId },
+          total = await Character.aggregate([
+            { $match: { name: { $regex: parsedQs }, createdBy: decoded.userId } },
             {
-              name: 1,
-              "flavor.portrait.avatar": 1,
-              "flavor.traits.pronoun": 1,
-              "stats.classes": 1,
-              "stats.race": 1,
-              createdBy: 1,
-            }
-          )
-            .limit(parseInt(limit) ?? 0)
-            .skip(parseInt(skip) ?? 0);
+              $group: {
+                _id: { $ifNull: ["$flavor.group", "$_id"] },
+                id: { $first: "$_id" },
+                name: { $first: "$name" },
+                personality: { $first: "$flavor.personality" },
+                avatar: { $first: "$flavor.portrait.avatar" },
+                count: { $sum: 1 },
+              },
+            },
+          ]);
+
+          const aggregation = [
+            { $match: { name: { $regex: parsedQs }, createdBy: decoded.userId } },
+            {
+              $group: {
+                _id: { $ifNull: ["$flavor.group", "$_id"] },
+                id: { $first: "$_id" },
+                name: { $first: "$name" },
+                personality: { $first: "$flavor.personality" },
+                avatar: { $first: "$flavor.portrait.avatar" },
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { name: 1 } },
+          ];
+
+          if (parseInt(skip ?? 0) > 0) aggregation.push({ $skip: parseInt(skip ?? 0) });
+
+          if (parseInt(limit ?? 0) > 0) aggregation.push({ $limit: parseInt(limit ?? 0) });
+
+          characters = await Character.aggregate(aggregation);
         }
 
-        res.status(200).json({ payload: { data: characters, total } });
+        res.status(200).json({ payload: { data: characters, total: total.length } });
       } else {
         res.status(401).json({ message });
       }
@@ -84,7 +103,6 @@ module.exports.putCharacters = async (req, res) => {
         if (err) {
           return res.status(403).json({ message: "El personaje no ha podido ser modificado." });
         }
-        req.app.io.emit("updatedCharacter", { id: req.params.id });
         return res.status(200).json({ message: "Personaje modificado" });
       });
     } else {

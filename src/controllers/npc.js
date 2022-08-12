@@ -2,6 +2,7 @@ const Npc = require("../models/npc");
 const Class = require("../models/class");
 const Spell = require("../models/spell");
 const Faction = require("../models/faction");
+const Tier = require("../models/tier");
 
 const cheerio = require("cheerio");
 const fs = require("fs");
@@ -69,23 +70,38 @@ module.exports.getNpc = async (req, res) => {
         const { skip, limit, qs } = req.query;
         const parsedQs = new RegExp(qs, "i");
 
-        const total = await Npc.find({ name: parsedQs, createdBy: decoded.userId }).count();
-
-        const npcs = await Npc.find(
-          { name: parsedQs, createdBy: decoded.userId },
+        let total = await Npc.aggregate([
+          { $match: { name: { $regex: parsedQs }, createdBy: decoded.userId } },
           {
-            name: 1,
-            "flavor.personality": 1,
-            "flavor.portrait.avatar": 1,
-            "flavor.class": 1,
-            "stats.race.name": 1,
-            createdBy: 1,
-          }
-        )
-          .limit(parseInt(limit) ?? 0)
-          .skip(parseInt(skip) ?? 0);
+            $group: {
+              _id: { $ifNull: ["$flavor.group", "$_id"] },
+              id: { $first: "$_id" },
+              name: { $first: "$name" },
+              personality: { $first: "$flavor.personality" },
+              avatar: { $first: "$flavor.portrait.avatar" },
+              count: { $sum: 1 },
+            },
+          },
+        ]);
 
-        res.status(200).json({ payload: { data: npcs, total } });
+        let npcs = await Npc.aggregate([
+          { $match: { name: { $regex: parsedQs }, createdBy: decoded.userId } },
+          {
+            $group: {
+              _id: { $ifNull: ["$flavor.group", "$_id"] },
+              id: { $first: "$_id" },
+              name: { $first: "$name" },
+              personality: { $first: "$flavor.personality" },
+              avatar: { $first: "$flavor.portrait.avatar" },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { name: 1 } },
+          { $skip: parseInt(skip) ?? 0 },
+          { $limit: parseInt(limit) ?? 0 },
+        ]);
+
+        res.status(200).json({ payload: { data: npcs, total: total.length } });
       }
     } else {
       res.status(401).json({ message });
@@ -107,7 +123,7 @@ module.exports.postNpc = async (req, res) => {
       newNpc.save(function (err) {
         if (err) return res.status(403).json({ message: "Error: " + err });
 
-        res.status(200).json({ value: newNpc._id });
+        res.status(200).json({ payload: newNpc._id });
       });
     } else {
       res.status(401).json({ message });
@@ -178,11 +194,41 @@ module.exports.getCampaignNpcs = async (req, res) => {
     const { valid, message } = utils.validateToken(req.headers.authorization);
 
     if (valid) {
-      const npcs = await Npc.find({
-        "flavor.campaign": { $elemMatch: { campaignId: req.params.id } },
-      });
+      const { skip, limit, qs } = req.query;
+      const parsedQs = new RegExp(qs, "i");
 
-      res.status(200).json({ payload: npcs });
+      let total = await Npc.aggregate([
+        { $match: { name: { $regex: parsedQs }, "flavor.campaign": { $elemMatch: { campaignId: req.params.id } } } },
+        {
+          $group: {
+            _id: { $ifNull: ["$flavor.group", "$_id"] },
+            id: { $first: "$_id" },
+            name: { $first: "$name" },
+            personality: { $first: "$flavor.personality" },
+            avatar: { $first: "$flavor.portrait.avatar" },
+            count: { $sum: 1 },
+          },
+        },
+      ]);
+
+      const npcs = await Npc.aggregate([
+        { $match: { name: { $regex: parsedQs }, "flavor.campaign": { $elemMatch: { campaignId: req.params.id } } } },
+        {
+          $group: {
+            _id: { $ifNull: ["$flavor.group", "$_id"] },
+            id: { $first: "$_id" },
+            name: { $first: "$name" },
+            personality: { $first: "$flavor.personality" },
+            avatar: { $first: "$flavor.portrait.avatar" },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { name: 1 } },
+        { $skip: parseInt(skip) ?? 0 },
+        { $limit: parseInt(limit) ?? 0 },
+      ]);
+
+      res.status(200).json({ payload: { data: npcs, total: total.length } });
     } else {
       res.status(401).json({ message });
     }
@@ -326,7 +372,8 @@ module.exports.getNpcStatBlock = async (req, res) => {
           $("#traits-list-left").append("<h3>Hechizos</h3>");
 
           const classes = await Class.find({});
-          const spellData = await Spell.find({});
+          let spellData = await Spell.find({});
+          spellData = JSON.parse(JSON.stringify(spellData));
 
           npc["stats"]["spells"].forEach((spell) => {
             $("#traits-list-left").append(`
