@@ -119,9 +119,41 @@ module.exports.getCampaignMonsters = async (req, res) => {
     const { valid, message } = utils.validateToken(req.headers.authorization);
 
     if (valid) {
-      const monsters = await Monster.find({ "flavor.campaign": { $elemMatch: { campaignId: req.params.id } } });
+      const { skip, limit, qs } = req.query;
+      const parsedQs = new RegExp(qs, "i");
 
-      res.status(200).json({ payload: monsters });
+      let total = await Monster.aggregate([
+        { $match: { name: { $regex: parsedQs }, "flavor.campaign": { $elemMatch: { campaignId: req.params.id } } } },
+        {
+          $group: {
+            _id: { $ifNull: ["$flavor.group", "$_id"] },
+            id: { $first: "$_id" },
+            name: { $first: "$name" },
+            personality: { $first: "$flavor.personality" },
+            avatar: { $first: "$flavor.portrait.avatar" },
+            count: { $sum: 1 },
+          },
+        },
+      ]);
+
+      const monsters = await Monster.aggregate([
+        { $match: { name: { $regex: parsedQs }, "flavor.campaign": { $elemMatch: { campaignId: req.params.id } } } },
+        {
+          $group: {
+            _id: { $ifNull: ["$flavor.group", "$_id"] },
+            id: { $first: "$_id" },
+            name: { $first: "$name" },
+            personality: { $first: "$flavor.personality" },
+            avatar: { $first: "$flavor.portrait.avatar" },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { name: 1 } },
+        { $skip: parseInt(skip) ?? 0 },
+        { $limit: parseInt(limit) ?? 0 },
+      ]);
+
+      res.status(200).json({ payload: { data: monsters, total: total.length } });
     } else {
       res.status(401).json({ message });
     }
