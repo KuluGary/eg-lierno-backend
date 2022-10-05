@@ -27,14 +27,14 @@ module.exports.postSpells = async (req, res) => {
 module.exports.getSpells = async (req, res) => {
   try {
     if (req.params.id) {
-      const spellIds = JSON.parse(req.params.id);
+      const spellIds = req.params.id.split(",");
 
-      if (Array.isArray(spellIds)) {
+      if (spellIds.length > 1) {
         const spells = await Spell.find({ _id: { $in: spellIds } });
 
         res.status(200).json({ payload: spells });
       } else {
-        const spell = await Spell.findById(spellIds);
+        const spell = await Spell.findById(spellIds[0]);
 
         res.status(200).json({ payload: spell });
       }
