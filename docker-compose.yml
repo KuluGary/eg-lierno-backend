@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 name: lierno-app
 
 services:
@@ -11,7 +11,7 @@ services:
       - 2717:27017
     volumes:
       - E:/Usuarios/garyc/Aplicaciones/MongoDB/data:/data/db
-  
+
   # Node API service
   api:
     container_name: api
@@ -27,21 +27,23 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/lierno
     depends_on:
       - mongodb
-  
+
   # Client service
   client:
     container_name: client
     build: ../client
     ports:
       - 3000:3000
+      - 49153:49153
     volumes:
       - ../client:/usr/src/client
       - /usr/src/client/node_modules
-      - /usr/src/app/.next
     env_file:
       - ../client/.env.local
+    restart: always
     depends_on:
       - api
+    command: npm run dev
 
 volumes:
   mongodb: {}
