@@ -42,6 +42,7 @@ app.use("/api/v1", require("./routes/spell.routes"));
 app.use("/api/v1", require("./routes/image.routes"));
 app.use("/api/v1", require("./routes/logs.routes"));
 app.use("/api/v1", require("./routes/tier.routes"));
+app.use("/api", require("./routes/ping.routes"))
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
