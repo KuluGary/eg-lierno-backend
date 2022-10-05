@@ -21,6 +21,12 @@ const ItemSchema = new Schema(
       required: false,
       unique: false,
     },
+    rarity: {
+      type: Object,
+      required: false,
+      unique: false,
+      default: "common",
+    },
     description: {
       type: String,
       required: false,
