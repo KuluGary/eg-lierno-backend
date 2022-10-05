@@ -2,6 +2,6 @@ const { getClasses } = require("../controllers/class");
 
 const router = require("express").Router();
 
-router.get("/classes", getClasses);
+router.get("/classes/:id?", getClasses);
 
 module.exports = router;
