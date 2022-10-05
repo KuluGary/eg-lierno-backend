@@ -2,7 +2,6 @@ const Npc = require("../models/npc");
 const Class = require("../models/class");
 const Spell = require("../models/spell");
 const Faction = require("../models/faction");
-const Tier = require("../models/tier");
 
 const cheerio = require("cheerio");
 const fs = require("fs");
