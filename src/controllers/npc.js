@@ -17,6 +17,7 @@ const {
   getSpellcastingName,
   getSpellStrings,
 } = require("@lierno/dnd-helpers");
+const mongoose = require("mongoose");
 
 const experienceByCr = {
   0: 10,
@@ -79,6 +80,9 @@ module.exports.getNpc = async (req, res) => {
               name: { $first: "$name" },
               personality: { $first: "$flavor.personality" },
               avatar: { $first: "$flavor.portrait.avatar" },
+              avatar: { $first: "$flavor.portrait.avatar" },
+              classes: { $first: "$flavor.class" },
+              race: { $first: "$stats.race" },
               count: { $sum: 1 },
             },
           },
@@ -93,6 +97,9 @@ module.exports.getNpc = async (req, res) => {
               name: { $first: "$name" },
               personality: { $first: "$flavor.personality" },
               avatar: { $first: "$flavor.portrait.avatar" },
+              avatar: { $first: "$flavor.portrait.avatar" },
+              class: { $first: "$flavor.class" },
+              race: { $first: "$stats.race" },
               count: { $sum: 1 },
             },
           },
@@ -206,6 +213,9 @@ module.exports.getCampaignNpcs = async (req, res) => {
             name: { $first: "$name" },
             personality: { $first: "$flavor.personality" },
             avatar: { $first: "$flavor.portrait.avatar" },
+            avatar: { $first: "$flavor.portrait.avatar" },
+            classes: { $first: "$flavor.class" },
+            race: { $first: "$stats.race" },
             count: { $sum: 1 },
           },
         },
@@ -220,6 +230,9 @@ module.exports.getCampaignNpcs = async (req, res) => {
             name: { $first: "$name" },
             personality: { $first: "$flavor.personality" },
             avatar: { $first: "$flavor.portrait.avatar" },
+            avatar: { $first: "$flavor.portrait.avatar" },
+            class: { $first: "$flavor.class" },
+            race: { $first: "$stats.race" },
             count: { $sum: 1 },
           },
         },
@@ -240,17 +253,58 @@ module.exports.getCampaignNpcs = async (req, res) => {
 module.exports.getFactionNpcs = async (req, res) => {
   try {
     const { valid, message } = utils.validateToken(req.headers.authorization);
-    const faction = await Faction.findById(req.params.id);
-    const npcsToFind = faction?.members?.npcs?.map((npc) => npc.id);
 
-    const npcs = await Npc.find({ _id: { $in: npcsToFind } });
-
-    res.status(200).json({ payload: npcs });
     if (valid) {
+      const { skip, limit, qs } = req.query;
+      const parsedQs = new RegExp(qs, "i");
+
+      const faction = await Faction.findById(req.params.id);
+      const npcsToFind = faction?.members?.npcs?.map((npc) => mongoose.Types.ObjectId(npc.id));
+
+      let total = await Npc.aggregate([
+        { $match: { name: { $regex: parsedQs }, _id: { $in: npcsToFind } } },
+        {
+          $group: {
+            _id: { $ifNull: ["$flavor.group", "$_id"] },
+            id: { $first: "$_id" },
+            name: { $first: "$name" },
+            personality: { $first: "$flavor.personality" },
+            avatar: { $first: "$flavor.portrait.avatar" },
+            avatar: { $first: "$flavor.portrait.avatar" },
+            classes: { $first: "$flavor.class" },
+            race: { $first: "$stats.race" },
+            count: { $sum: 1 },
+          },
+        },
+      ]);
+
+      const npcs = await Npc.aggregate([
+        { $match: { name: { $regex: parsedQs }, _id: { $in: npcsToFind } } },
+        {
+          $group: {
+            _id: { $ifNull: ["$flavor.group", "$_id"] },
+            id: { $first: "$_id" },
+            name: { $first: "$name" },
+            personality: { $first: "$flavor.personality" },
+            avatar: { $first: "$flavor.portrait.avatar" },
+            avatar: { $first: "$flavor.portrait.avatar" },
+            class: { $first: "$flavor.class" },
+            race: { $first: "$stats.race" },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { name: 1 } },
+        { $skip: parseInt(skip) ?? 0 },
+        { $limit: parseInt(limit) ?? 0 },
+      ]);
+
+      res.status(200).json({ payload: { data: npcs, total: total.length } });
     } else {
       res.status(401).json({ message });
     }
-  } catch (e) {}
+  } catch (e) {
+    res.status(400).json({ message: "Error: " + e });
+  }
 };
 
 module.exports.getNpcStatBlock = async (req, res) => {
