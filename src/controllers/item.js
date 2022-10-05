@@ -8,7 +8,7 @@ module.exports.getItems = async (req, res) => {
 
       res.status(200).json({ payload: item });
     } else {
-      const items = await Item.find({});
+      const items = await Item.find({}).sort({ name: 1 });
 
       res.status(200).json({ payload: items });
     }
